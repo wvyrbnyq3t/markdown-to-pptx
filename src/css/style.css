@@ -2,3 +2,88 @@
 @import "./slides.css";
 @import "./settings.css";
 @import "./responsive.css";
+
+:where(.c-avatar) {
+  --sz-avatar: 52px;
+  --sz-border-width: 2.5px;
+
+  border: var(--sz-border-width) solid var(--c-active);
+  border-radius: 99rem;
+  display: flex block;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  height: var(--sz-avatar);
+  width: var(--sz-avatar);
+  overflow: hidden;
+}
+
+:where(.c-avatar--xs) {
+  --sz-avatar: 48px;
+}
+:where(.c-avatar--sm) {
+  --sz-avatar: 56px;
+}
+:where(.c-avatar--md) {
+  --sz-avatar: 64px;
+}
+:where(.c-avatar--lg) {
+  --sz-avatar: 72px;
+  --sz-border-width: 2.75px;
+}
+:where(.c-avatar--xl) {
+  --sz-avatar: 80px;
+  --sz-border-width: 3.5px;
+}
+
+:where(.c-avatar__image) {
+  border: calc(var(--sz-border-width) * 0.8) solid #ffffff;
+  border-radius: 99rem;
+  height: 100%;
+  width: 100%;
+  object-fit: cover;
+}
+.c-avatar__icon {
+  --sz-icon: calc(var(--sz-avatar) * 0.55);
+  border: 0.2rem solid #ffffff;
+  border-radius: 99rem;
+  color: currentColor;
+}
+
+:where(.c-icon) {
+  --sz-icon: 3.6rem;
+  height: var(--sz-icon);
+  width: var(--sz-icon);
+
+  align-items: center;
+  display: inline-flex;
+  direction: ltr;
+  flex: 0 0 auto;
+  font-family: "material symbols outlined";
+  font-size: var(--sz-icon);
+  font-style: normal;
+  font-weight: normal;
+  justify-content: center;
+  letter-spacing: normal;
+  line-height: 1;
+  text-transform: none;
+  user-select: none;
+  vertical-align: -11.5%;
+  white-space: nowrap;
+  word-wrap: normal;
+}
+.c-icon--xs {
+  --sz-icon: 24px;
+}
+.c-icon--sm {
+  --sz-icon: 28px;
+}
+.c-icon--md {
+  --sz-icon: 36px;
+}
+.c-icon--lg {
+  --sz-icon: 42px;
+}
+.c-icon--xl {
+  --sz-icon: 48px;
+}

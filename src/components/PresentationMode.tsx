@@ -197,7 +197,7 @@ export function PresentationModeLauncher({
         onClick={() => void openPresentation()}
       >
         <PlayIcon />
-        プレゼンテーション
+        <span>プレゼンテーション</span>
       </button>
 
       <div

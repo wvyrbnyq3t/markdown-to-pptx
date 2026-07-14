@@ -1,9 +1,4 @@
-import {
-  useEffect,
-  useRef,
-  type MouseEvent,
-  type ReactNode,
-} from "react";
+import { useEffect, useRef, type MouseEvent, type ReactNode } from "react";
 
 import type { UpdateSetting } from "../../hooks/usePresentationEditor";
 import {
@@ -34,6 +29,11 @@ export function SettingsDialog({
   onClose,
 }: SettingsDialogProps) {
   const dialogRef = useRef<HTMLDivElement>(null);
+  const onCloseRef = useRef(onClose);
+
+  useEffect(() => {
+    onCloseRef.current = onClose;
+  }, [onClose]);
 
   useEffect(() => {
     if (!isOpen) {
@@ -45,18 +45,22 @@ export function SettingsDialog({
 
     const handleKeyDown = (event: KeyboardEvent): void => {
       if (event.key === "Escape") {
-        onClose();
+        onCloseRef.current();
       }
     };
 
     window.addEventListener("keydown", handleKeyDown);
-    window.requestAnimationFrame(() => dialogRef.current?.focus());
+
+    const animationFrameId = window.requestAnimationFrame(() => {
+      dialogRef.current?.focus();
+    });
 
     return () => {
       document.body.style.overflow = previousOverflow;
       window.removeEventListener("keydown", handleKeyDown);
+      window.cancelAnimationFrame(animationFrameId);
     };
-  }, [isOpen, onClose]);
+  }, [isOpen]);
 
   if (!isOpen) {
     return null;

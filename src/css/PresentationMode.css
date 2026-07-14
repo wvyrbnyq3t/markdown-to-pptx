@@ -236,7 +236,7 @@
 /* ========================================
    PC
 ======================================== */
-@media (min-width: 960px){
+@media (min-width: 960px) {
   .presentation-mode-top-controls {
     display: none;
   }

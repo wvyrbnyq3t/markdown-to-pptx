@@ -16,12 +16,15 @@
     width: 20px;
     height: 20px;
   }
+  .presentation-launch-button,
+  .settings-button {
+    height: 52px !important;
+    width: 52px !important;
+  }
 }
 
 @media (max-width: 960px) {
   .app-header {
-    align-items: flex-start;
-    flex-direction: column;
     padding: var(--space-4);
   }
 

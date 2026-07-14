@@ -12,6 +12,10 @@ import {
   SettingsIcon,
 } from "./ui/Icons";
 
+import { useUserAuth } from "../features/auth/hooks/useUserAuth";
+import { signInWithGoogle } from "../features/auth/api/authApi";
+import { Avatar, AvatarImage } from "./Avatar";
+
 type AppHeaderProps = {
   fileInputRef: RefObject<HTMLInputElement | null>;
   slides: SlideData[];
@@ -39,8 +43,29 @@ export function AppHeader({
   onOpenSettings,
   onExport,
 }: AppHeaderProps) {
+  const { authUser, isAuthLoading } = useUserAuth();
+
   return (
     <header className="app-header">
+      {!authUser || isAuthLoading ? (
+        <button
+          type="button"
+          className="primary-button"
+          onClick={async () => {
+            try {
+              await signInWithGoogle();
+            } catch (error) {
+              console.error("Googleサインインに失敗しました:", error);
+            }
+          }}
+        >
+          Googleでサインイン
+        </button>
+      ) : (
+        <Avatar size="sm">
+          <AvatarImage src={authUser?.photoURL || ""} />
+        </Avatar>
+      )}
       <div className="header-actions">
         <PresentationModeLauncher
           slides={slides}
@@ -48,7 +73,7 @@ export function AppHeader({
           slideStyle={slideStyle}
         />
 
-        <button
+        {/* <button
           type="button"
           className="secondary-button import-markdown-button"
           onClick={() => fileInputRef.current?.click()}
@@ -73,15 +98,15 @@ export function AppHeader({
         >
           <MarkdownSaveIcon />
           <span>Markdownを保存</span>
-        </button>
+        </button> */}
 
         <button
           type="button"
-          className="secondary-button"
+          className="secondary-button settings-button"
           onClick={onOpenSettings}
         >
           <SettingsIcon />
-          スライド設定
+          <span>スライド設定</span>
         </button>
 
         <button
