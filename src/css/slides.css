@@ -1,0 +1,363 @@
+/* ========================================
+   タイトルページ
+======================================== */
+
+.title-slide-inner {
+  display: flex;
+  width: 100%;
+  height: 100%;
+  align-items: center;
+  justify-content: center;
+  padding: var(--slide-margin);
+}
+
+.title-slide-content {
+  width: 100%;
+  max-width: 1700px;
+  text-align: center;
+}
+
+.title-slide-title {
+  margin: 0;
+  color: var(--slide-primary-color);
+  font-size: var(--title-page-title-font-size);
+  font-weight: 700;
+  line-height: 1;
+  overflow-wrap: anywhere;
+}
+
+.title-slide-accent {
+  display: none;
+}
+
+.title-slide-subtitle {
+  margin: var(--space-8) 0 0;
+  color: var(--slide-text-color);
+  font-size: var(--title-page-subtitle-font-size);
+  line-height: 1.7;
+  overflow-wrap: anywhere;
+}
+
+/* ========================================
+   通常スライド
+======================================== */
+
+.slide-inner {
+  display: flex;
+  width: 100%;
+  height: 100%;
+  flex-direction: column;
+  padding: var(--slide-margin);
+}
+
+/*
+ * タイトル下の線を削除。
+ * タイトル自体には追加の下余白を設定しない。
+ */
+.slide-header {
+  flex-shrink: 0;
+  padding: 0;
+  border: 0;
+}
+
+.slide-header h3 {
+  margin: 0;
+  overflow: hidden;
+  color: var(--slide-primary-color);
+  font-size: var(--slide-title-font-size);
+  font-weight: 700;
+  line-height: 1;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/*
+ * タイトルとコンテンツの間には、
+ * スライド外周余白と同じ値を使用する。
+ *
+ * コンテンツ要素同士は基本8px。
+ */
+.slide-body {
+  display: flex;
+  min-height: 0;
+  margin-top: var(--slide-margin);
+  flex: 1;
+  flex-direction: column;
+  gap: var(--slide-content-gap);
+  overflow: hidden;
+  color: var(--slide-text-color);
+  font-size: var(--slide-body-font-size);
+  line-height: 1.7;
+}
+
+/*
+ * ブラウザ既定のmarginをすべて削除し、
+ * gapだけで要素間隔を管理する。
+ */
+.slide-body > * {
+  flex-shrink: 0;
+  margin: 0;
+}
+
+/*
+ * コンテンツ内の小見出しは、
+ * 上に要素がある場合に合計16px空ける。
+ *
+ * flexのgap 8pxに加えて
+ * margin-top 8pxを加算するため、
+ * 合計16pxになる。
+ */
+/*
+ * 上に要素がある見出しは、
+ * 通常の要素間余白と合わせて
+ * 最低48pxの上余白を確保する。
+ */
+.preview-subtitle:not(:first-child),
+.preview-content-heading:not(:first-child) {
+  margin-top: max(0px, calc(48px - var(--slide-content-gap)));
+}
+
+.preview-subtitle {
+  color: var(--slide-primary-color);
+  font-size: var(--slide-subtitle-font-size);
+  font-weight: 700;
+  line-height: 1;
+}
+
+/*
+ * Markdownの見出し3〜6
+ *
+ * 本文サイズの1.25倍
+ * font-weight: 700
+ * line-height: 1.0
+ */
+.preview-content-heading {
+  color: var(--slide-text-color);
+  font-size: var(--slide-content-heading-font-size);
+  font-weight: 700;
+  line-height: 1;
+}
+
+/*
+ * 上にコンテンツが存在する場合は48px空ける。
+ *
+ * .slide-bodyのgapが8pxなので、
+ * margin-top: 40pxを加えて合計48pxにする。
+ */
+.preview-content-heading:not(:first-child) {
+  margin-top: 40px;
+}
+
+.preview-paragraph {
+  line-height: 1.7;
+  white-space: pre-wrap;
+}
+
+/* ========================================
+   ネスト付きリスト
+======================================== */
+
+.preview-list-root {
+  margin: 0;
+}
+
+.preview-list {
+  margin: 0;
+  padding-left: 1.45em;
+  color: var(--slide-text-color);
+  line-height: 1.7;
+}
+
+.preview-list-item-content {
+  min-width: 0;
+}
+
+.preview-list > li + li {
+  margin-top: var(--space-2);
+}
+
+/*
+ * 子リスト。
+ *
+ * 親項目の本文と子リストの間には
+ * 8pxの余白を設ける。
+ */
+.preview-list .preview-list {
+  margin-top: var(--space-2);
+  padding-left: 1.5em;
+}
+
+/*
+ * 箇条書きの階層ごとに
+ * マーカーを変更する。
+ */
+.preview-bullet-list {
+  list-style-type: disc;
+}
+
+.preview-bullet-list.preview-list-depth-1 {
+  list-style-type: circle;
+}
+
+.preview-bullet-list.preview-list-depth-2,
+.preview-bullet-list.preview-list-depth-3,
+.preview-bullet-list.preview-list-depth-4,
+.preview-bullet-list.preview-list-depth-5 {
+  list-style-type: square;
+}
+
+/*
+ * 番号付きリストは、
+ * ネストしても各リストのstartから
+ * 番号を開始する。
+ */
+.preview-numbered-list {
+  list-style-type: decimal;
+}
+
+/* ========================================
+   強調・リンク
+======================================== */
+
+.preview-inline-strong {
+  font-weight: 700;
+}
+
+.preview-inline-emphasis {
+  font-style: italic;
+}
+
+.preview-inline-link {
+  color: var(--slide-link-color);
+  font-weight: inherit;
+  text-decoration: underline;
+  text-decoration-thickness: 0.06em;
+  text-underline-offset: 0.12em;
+}
+
+.preview-inline-link:hover {
+  opacity: 0.8;
+}
+
+.preview-inline-accent {
+  color: var(--slide-accent-color);
+}
+
+/* ========================================
+   引用
+======================================== */
+
+.preview-quote-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.preview-quote {
+  position: relative;
+  margin: 0;
+  padding: 16px 16px 16px 32px;
+  border-left: 4px solid var(--slide-accent-color);
+  color: var(--slide-text-color);
+  background: var(--color-shadow-faint);
+  line-height: 1.5;
+}
+
+.preview-quote p {
+  margin: 0;
+}
+
+/*
+ * >> 二重引用
+ *
+ * 現在の引用線に加えて、
+ * 左側へもう1本引用線を追加する。
+ */
+.preview-quote-depth-2 {
+  margin-left: 28px;
+}
+
+.preview-quote-depth-2::before {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: -32px;
+  width: 4px;
+  background: var(--slide-accent-color);
+  content: "";
+  opacity: 0.45;
+}
+
+.preview-inline-math {
+  display: inline-block;
+  margin: 0 0.15em;
+}
+
+.preview-math-block {
+  display: flex;
+  min-height: 100px;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  font-size: var(--slide-math-font-size);
+}
+
+.preview-math-block .katex-display {
+  margin: 0;
+}
+
+.preview-code-wrapper {
+  overflow: hidden;
+  border: 2px solid var(--slide-accent-color);
+  border-radius: var(--radius-lg);
+  background: var(--color-code-background);
+}
+
+.preview-code-language {
+  padding: 10px 20px;
+  border-bottom: 1px solid var(--color-neutral-700);
+  color: var(--color-neutral-500);
+  font-family: var(--font-family-mono);
+  font-size: 20px;
+}
+
+.preview-code {
+  max-height: 420px;
+  margin: 0;
+  overflow: hidden;
+  padding: var(--space-5);
+  color: var(--color-code-text);
+  font-family: var(--font-family-mono);
+  font-size: var(--slide-code-font-size);
+  line-height: 1.5;
+  white-space: pre-wrap;
+}
+
+.preview-image-wrapper {
+  margin: 0;
+  text-align: center;
+}
+
+.preview-image-wrapper img {
+  display: block;
+  width: 100%;
+  max-height: 520px;
+  object-fit: contain;
+}
+
+.preview-image-wrapper figcaption {
+  margin-top: var(--space-2);
+  font-size: 22px;
+  line-height: 1.7;
+}
+
+.slide-page-number {
+  flex-shrink: 0;
+  margin-top: auto;
+  padding-top: var(--space-2);
+  color: var(--slide-text-color);
+  font-size: var(--slide-page-number-font-size);
+  line-height: 1;
+  text-align: right;
+  opacity: 0.7;
+}
