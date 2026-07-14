@@ -1,75 +1,395 @@
-# React + TypeScript + Vite
+# Markdown PPTX Generator
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Markdownからスライドを生成し、ブラウザ上でプレビューしながらPowerPoint形式（`.pptx`）として出力できるReactアプリケーションです。
 
-Currently, two official plugins are available:
+1920×1080pxのスライドを基準として、タイトル、見出し、本文、リスト、引用、数式、コードブロックなどをMarkdownから変換します。
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## 主な機能
 
-## React Compiler
+- Markdownをリアルタイムでスライドへ変換
+- 1920×1080px基準のスライドプレビュー
+- PowerPoint形式（`.pptx`）で出力
+- Markdownファイルの読み込み・保存
+- タイトルスライドの生成
+- スライド番号の表示
+- 全画面のプレゼンテーション練習モード
+- スライドカラー、余白、文字サイズなどの設定
+- コンテンツ要素間の余白設定
+- 数式のプレビューとPPTX出力
+- 箇条書き・番号付き・ネスト付きリスト
+- 引用・二重引用
+- 太字・斜体・リンク
+- アクセントカラーによる部分的な文字色変更
+- スマートフォン向けのMarkdown／プレビュー切り替え表示
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## 使用技術
 
-## Expanding the ESLint configuration
+- React
+- TypeScript
+- Vite
+- PptxGenJS
+- unified
+- remark-parse
+- remark-gfm
+- remark-math
+- KaTeX
+- MathJax
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+## セットアップ
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+### 1. 依存パッケージをインストール
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-
+```bash
+npm install
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+### 2. 開発サーバーを起動
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-
+```bash
+npm run dev
 ```
+
+表示されたローカルURLをブラウザで開いてください。
+
+### 3. 本番用にビルド
+
+```bash
+npm run build
+```
+
+ビルド結果は`dist`ディレクトリへ出力されます。
+
+## 基本的な使い方
+
+1. 左側のMarkdownエディターへMarkdownを入力します。
+2. 右側のプレビューでスライドを確認します。
+3. 必要に応じて「スライド設定」から色、余白、文字サイズなどを変更します。
+4. 「PPTXを出力」を押してPowerPointファイルを保存します。
+
+既存のMarkdownファイルを編集する場合は「Markdownを開く」、編集中のMarkdownを保存する場合は「Markdownを保存」を使用します。
+
+## スライドの区切り
+
+見出し1（`#`）ごとに新しいスライドを生成します。
+
+```markdown
+# 1枚目のタイトル
+
+1枚目の本文です。
+
+# 2枚目のタイトル
+
+2枚目の本文です。
+```
+
+## 対応しているMarkdown記法
+
+### スライドタイトル
+
+見出し1をスライドタイトルとして使用します。
+
+```markdown
+# スライドタイトル
+```
+
+### 小見出し
+
+見出し2をスライド内の小見出しとして使用します。
+
+```markdown
+## 小見出し
+```
+
+### コンテンツ見出し
+
+見出し3〜6は、本文より1.25倍大きく、太さ700のコンテンツ見出しとして表示します。
+
+```markdown
+### 見出し3
+
+#### 見出し4
+
+##### 見出し5
+
+###### 見出し6
+```
+
+見出しの上に別のコンテンツがある場合は、上方向に最低48pxの余白を設けます。
+
+### 本文
+
+```markdown
+これは本文です。
+```
+
+本文の行間は`1.7`です。
+
+### 太字
+
+```markdown
+**太字にする文字**
+```
+
+### 斜体
+
+```markdown
+*斜体にする文字*
+```
+
+### リンク
+
+```markdown
+[リンクの文字](https://example.com)
+```
+
+プレビュー上ではリンクとして表示され、PPTX上でも可能な範囲でハイパーリンクとして設定されます。
+
+### アクセントカラー
+
+`==`で囲んだ文字へ、スライド設定のアクセントカラーを適用します。
+
+```markdown
+通常の文章の中で、==この部分だけ強調します==。
+```
+
+太字と組み合わせる場合は、次の順序で記述します。
+
+```markdown
+**==重要な文字==**
+```
+
+> `==文字==`は、このアプリ独自の記法です。
+
+### 箇条書きリスト
+
+```markdown
+- 項目1
+- 項目2
+- 項目3
+```
+
+### 番号付きリスト
+
+```markdown
+1. 手順1
+2. 手順2
+3. 手順3
+```
+
+### ネスト付きリスト
+
+箇条書きと番号付きリストを入れ子にできます。
+
+```markdown
+- 親項目
+  - 子項目
+    1. 孫の番号付き項目
+    2. 次の項目
+- 次の親項目
+```
+
+PPTXでは、可能な範囲でPowerPointのネイティブなリスト形式へ変換します。
+
+### 引用
+
+```markdown
+> これは引用です。
+```
+
+引用部分には、アクセントカラーの左線と背景色が適用されます。
+
+引用内の上下paddingは16px、行間は`1.5`です。
+
+### 二重引用
+
+```markdown
+> 外側の引用
+>
+>> 内側の引用
+```
+
+二重引用は、左側の引用線と字下げによって階層を表現します。
+
+### コードブロック
+
+````markdown
+```ts
+const message = "Hello";
+console.log(message);
+```
+````
+
+言語名を指定すると、コードブロック上部へ表示します。
+
+### インライン数式
+
+```markdown
+質量とエネルギーの関係は $E = mc^2$ です。
+```
+
+### ブロック数式
+
+```markdown
+$$
+x = \frac{-b \pm \sqrt{b^2 - 4ac}}{2a}
+$$
+```
+
+プレビューではKaTeX、PPTX出力ではMathJaxから生成したSVGを使用します。
+
+## 設定できる項目
+
+### レイアウト
+
+- スライド余白
+- コンテンツ要素間の余白
+- タイトルスライドの有無
+- ページ番号の有無
+
+### カラー
+
+- メインカラー
+- 背景色
+- 本文色
+- アクセントカラー
+
+### 文字サイズ
+
+- スライドタイトル
+- 小見出し
+- 本文
+- コード
+- 数式
+- ページ番号
+- タイトルスライドのタイトル
+- タイトルスライドのサブタイトル
+
+設定画面の「初期化」を押すと確認ダイアログが表示され、「初期化する」を選択した場合のみ初期値へ戻ります。
+
+## スライドのレイアウトルール
+
+- スライドサイズ：1920×1080px
+- タイトルの行間：`1.0`
+- 本文の行間：`1.7`
+- 引用の行間：`1.5`
+- 引用の上下padding：16px
+- コンテンツ見出しの上余白：最低48px
+- コンテンツ要素間の余白：設定画面から変更可能
+- CSSの余白設計：8pxを最小単位とするスペーシングシステム
+
+## 全画面プレゼンテーションモード
+
+プレビュー画面のプレゼンテーションボタンから、スライドを1枚ずつ全画面表示できます。
+
+主な操作：
+
+- `←`：前のスライド
+- `→`：次のスライド
+- `Space`：次のスライド
+- `Escape`：全画面表示を終了
+- 画面左側をクリック：前のスライド
+- 画面右側をクリック：次のスライド
+
+## ディレクトリ構成
+
+```text
+src/
+├── App.tsx
+├── App.css
+├── index.css
+├── main.tsx
+├── components/
+│   ├── MarkdownListView.tsx
+│   ├── PresentationMode.tsx
+│   └── PresentationMode.css
+├── features/
+│   ├── markdown/
+│   │   └── parseMarkdown.ts
+│   ├── math/
+│   │   └── renderMath.ts
+│   └── pptx/
+│       └── generatePptx.ts
+├── types/
+│   ├── presentation.ts
+│   └── slide.ts
+└── utils/
+    └── slideUnits.ts
+```
+
+## 各ファイルの役割
+
+### `App.tsx`
+
+アプリ全体の画面構成、Markdown入力、設定ダイアログ、プレビュー、ファイル操作を管理します。
+
+### `parseMarkdown.ts`
+
+Markdownを解析し、スライド表示とPPTX出力で共通利用するデータ構造へ変換します。
+
+### `renderMath.ts`
+
+KaTeXによるHTML生成と、MathJaxによるPPTX用SVG生成を担当します。
+
+### `generatePptx.ts`
+
+解析済みのスライドデータと設定値から、PptxGenJSを使ってPowerPointファイルを生成します。
+
+### `PresentationMode.tsx`
+
+全画面でスライドを1枚ずつ表示するプレゼンテーション練習モードを提供します。
+
+### `MarkdownListView.tsx`
+
+箇条書き、番号付きリスト、ネスト付きリストを再帰的に表示します。
+
+### `slideUnits.ts`
+
+1920×1080pxの座標系とPowerPointのインチ・ポイントを相互変換します。
+
+## CSS設計
+
+CSSカスタムプロパティは`:root`へまとめています。
+
+余白は8pxを最小単位として、次の変数を使用します。
+
+```css
+:root {
+  --space-1: 8px;
+  --space-2: 16px;
+  --space-3: 24px;
+  --space-4: 32px;
+  --space-5: 40px;
+  --space-6: 48px;
+  --space-8: 64px;
+  --space-10: 80px;
+}
+```
+
+スライド設定から変更される値は、Reactのインラインスタイルを通してCSS変数へ反映されます。
+
+## PPTX出力について
+
+ブラウザ上のプレビューとPowerPointでは、使用する描画エンジンやフォントメトリクスが異なるため、完全に同一の見た目にならない場合があります。
+
+特に次の要素は差が発生する可能性があります。
+
+- テキストの折り返し位置
+- フォントの幅や高さ
+- 数式SVGのサイズ
+- PowerPoint側の行間計算
+- ネスト付きリストのインデント
+- リンクや装飾の表示
+
+PPTX生成時には、テキストボックスの高さへ安全余白を加え、必要な場合のみ文字を縮小して収めます。
+
+## 注意事項
+
+- 見出し1はスライド区切りとして扱われます。
+- 見出し1より前の内容は、タイトルなしのスライドとして扱われる場合があります。
+- アクセントカラー記法`==文字==`は標準Markdownではありません。
+- 非常に長い文章や大量の要素を1枚に配置すると、文字が縮小されるか、スライド領域を超える可能性があります。
+- PPTX内で使用されるフォントは、閲覧環境にインストールされているフォントによって見え方が変わる場合があります。
+
+## ライセンス
+
+ライセンスを設定する場合は、このセクションへライセンス名と条件を記載してください。
