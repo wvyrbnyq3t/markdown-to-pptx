@@ -6,7 +6,8 @@
   .app-header .header-actions button span {
     display: none;
   }
-  .header-actions .presentation-launch-button, .header-actions .settings-button {
+  .header-actions .presentation-launch-button,
+  .header-actions .settings-button {
     border: none;
   }
   .header-actions .export-button,
@@ -35,6 +36,10 @@
     padding: var(--space-4);
   }
 
+  .workspace-resizer {
+    display: none;
+  }
+
   .mobile-view-tabs {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -42,7 +47,7 @@
     margin: 10px 10px 0;
     padding: var(--space-1);
     border: 1px solid var(--color-border-input);
-    border-radius: 11px;
+    border-radius: var(--radius-sm);
     background: var(--color-border-soft);
   }
 
@@ -54,7 +59,7 @@
     justify-content: center;
     gap: 7px;
     padding: 0 10px;
-    border-radius: var(--radius-md);
+    border-radius: var(--radius-sm);
     color: var(--color-text-muted);
     background: transparent;
     font-size: 13px;
@@ -62,13 +67,11 @@
     transition:
       color var(--duration-normal),
       background-color var(--duration-normal),
-      box-shadow var(--duration-normal);
   }
 
   .mobile-view-tab.active {
     color: var(--c-active);
     background: var(--color-surface);
-    box-shadow: 0 1px 4px var(--color-shadow-medium);
   }
 
   .mobile-view-tab:focus-visible {
@@ -143,9 +146,9 @@
     bottom: 0;
     padding: var(--space-3) var(--space-4);
     background: var(--color-surface);
-    box-shadow: 0 -4px 12px var(--color-shadow-soft);
   }
-  .preview-section .section-header {
+  .preview-section .section-header,
+  .editor-section .section-header {
     display: none;
   }
 }

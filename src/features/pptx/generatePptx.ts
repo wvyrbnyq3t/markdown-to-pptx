@@ -13,6 +13,7 @@ import {
   SLIDE_HEIGHT_PX,
   SLIDE_WIDTH_PX,
 } from "../../utils/slideUnits";
+import { getSlideSpacingPx } from "../../utils/slideSpacing";
 import { renderMathSvg } from "../math/renderMath";
 
 const SLIDE_LAYOUT_NAME = "CUSTOM_1920_1080";
@@ -20,7 +21,6 @@ const BODY_LINE_HEIGHT = 1.7;
 const QUOTE_LINE_HEIGHT = 1.5;
 const TEXT_HEIGHT_SAFETY_RATIO = 1.1;
 const CONTENT_HEADING_TOP_GAP_PX = 48;
-const MIN_REMAINING_HEIGHT_PX = 40;
 const MIN_GRID_COLUMNS = 1;
 const MAX_GRID_COLUMNS = 6;
 const DEFAULT_GRID_COLUMNS = 1;
@@ -556,20 +556,27 @@ function renderSlideColumn({
 }: RenderColumnOptions): void {
   let currentYPx = contentStartYPx;
   let hasPlacedContent = false;
+  let previousElementWasSpacing = false;
 
   for (const element of elements) {
-    const topGapPx = getElementTopGapPx(
-      element,
-      hasPlacedContent,
-      settings.contentGapPx,
-    );
-    const elementYPx = currentYPx + topGapPx;
-    const remainingHeightPx = bottomLimitPx - elementYPx;
+    if (element.type === "spacing") {
+      const spacingHeightPx = getSlideSpacingPx(element.size);
+      const availableHeightPx = Math.max(0, bottomLimitPx - currentYPx);
 
-    if (remainingHeightPx < MIN_REMAINING_HEIGHT_PX) {
-      break;
+      currentYPx += Math.min(spacingHeightPx, availableHeightPx);
+      previousElementWasSpacing = true;
+
+      continue;
     }
 
+    /*
+     * spacing直後は通常のcontentGapを追加しません。
+     */
+    const topGapPx = previousElementWasSpacing
+      ? 0
+      : getElementTopGapPx(element, hasPlacedContent, settings.contentGapPx);
+    const elementYPx = currentYPx + topGapPx;
+    const remainingHeightPx = Math.max(0, bottomLimitPx - elementYPx);
     let placedHeightPx = 0;
 
     switch (element.type) {
@@ -1080,6 +1087,7 @@ function renderSlideColumn({
     if (placedHeightPx > 0) {
       currentYPx = elementYPx + placedHeightPx;
       hasPlacedContent = true;
+      previousElementWasSpacing = false;
     }
   }
 }

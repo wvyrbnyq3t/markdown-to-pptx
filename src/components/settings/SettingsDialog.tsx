@@ -85,7 +85,6 @@ export function SettingsDialog({
         <header className="settings-dialog-header">
           <div>
             <h2 id="settings-dialog-title">スライド設定</h2>
-            <p>すべて1920×1080px基準のpx単位です。</p>
           </div>
           <button
             type="button"

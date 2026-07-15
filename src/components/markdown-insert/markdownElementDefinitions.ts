@@ -16,23 +16,10 @@ export type MarkdownElementCategory = {
 export type MarkdownElementDefinition = {
   id: string;
   categoryId: MarkdownElementCategoryId;
-
-  /**
-   * シート上に表示する簡易アイコン。
-   */
   symbol: string;
-
   label: string;
   description: string;
-
-  /**
-   * ユーザー向けに表示するMarkdown例。
-   */
   syntax: string;
-
-  /**
-   * 選択中の文字から挿入内容を生成します。
-   */
   createInsertion: (selectedText: string) => MarkdownInsertion;
 };
 
@@ -78,14 +65,12 @@ function createSelectionInsertion(
   block = true,
 ): MarkdownInsertion {
   const foundIndex = text.indexOf(selectedValue);
-
   const selectionStartOffset = foundIndex >= 0 ? foundIndex : text.length;
 
   return {
     text,
     block,
     selectionStartOffset,
-
     selectionEndOffset: selectionStartOffset + selectedValue.length,
   };
 }
@@ -100,30 +85,20 @@ function createWrappedInsertion(
 
   return {
     text: before + content + after,
-
     block: false,
-
     selectionStartOffset: before.length,
-
     selectionEndOffset: before.length + content.length,
   };
 }
 
 function createNewSlideInsertion(selectedText: string): MarkdownInsertion {
   const hasSelection = hasSelectedText(selectedText);
-
   const title = hasSelection
     ? normalizeSelectedText(selectedText).replace(/\s+/g, " ")
     : "スライドタイトル";
-
   const bodyPlaceholder = "本文を入力";
-
   const text = [`# ${title}`, "", bodyPlaceholder].join("\n");
 
-  /*
-   * 文字が選択されていた場合は、
-   * その文字をタイトルにして本文へ移動します。
-   */
   return createSelectionInsertion(text, hasSelection ? bodyPlaceholder : title);
 }
 
@@ -149,9 +124,7 @@ function createGridInsertion(
   columns: number,
 ): MarkdownInsertion {
   const hasSelection = hasSelectedText(selectedText);
-
   const labels = getGridColumnLabels(columns);
-
   const contents = labels.map((label, index) => {
     if (index === 0 && hasSelection) {
       return normalizeSelectedText(selectedText);
@@ -159,7 +132,6 @@ function createGridInsertion(
 
     return `${label}の内容`;
   });
-
   const lines: string[] = [`<!-- grid: ${columns} -->`, ""];
 
   labels.forEach((label, index) => {
@@ -171,11 +143,6 @@ function createGridInsertion(
   });
 
   const text = lines.join("\n");
-
-  /*
-   * 選択中の文章を1列目へ入れた場合は、
-   * 2列目の仮テキストを選択します。
-   */
   const selectionTarget =
     hasSelection && contents.length > 1 ? contents[1] : contents[0];
 
@@ -190,7 +157,6 @@ function createHeadingInsertion(
   const content = hasSelectedText(selectedText)
     ? normalizeSelectedText(selectedText)
     : placeholder;
-
   const text = `${prefix} ${content}`;
 
   return createSelectionInsertion(text, content);
@@ -208,9 +174,7 @@ function createQuoteInsertion(selectedText: string): MarkdownInsertion {
   const source = hasSelectedText(selectedText)
     ? normalizeSelectedText(selectedText)
     : "引用文を入力";
-
   const lines = source.split(/\r?\n/);
-
   const text = lines
     .map((line) => {
       return `> ${line}`;
@@ -255,7 +219,6 @@ function createBulletListInsertion(selectedText: string): MarkdownInsertion {
       selectionEndOffset: text.length,
     };
   }
-
   const text = ["- 項目1", "- 項目2"].join("\n");
 
   return createSelectionInsertion(text, "項目1");
@@ -282,7 +245,6 @@ function createOrderedListInsertion(selectedText: string): MarkdownInsertion {
       selectionEndOffset: text.length,
     };
   }
-
   const text = ["1. 項目1", "2. 項目2"].join("\n");
 
   return createSelectionInsertion(text, "項目1");
@@ -290,17 +252,9 @@ function createOrderedListInsertion(selectedText: string): MarkdownInsertion {
 
 function createLinkInsertion(selectedText: string): MarkdownInsertion {
   const hasSelection = hasSelectedText(selectedText);
-
   const label = hasSelection ? selectedText : "リンクの文字";
-
   const url = "https://example.com";
-
   const text = `[${label}](${url})`;
-
-  /*
-   * 文字を選択済みならURLを選択します。
-   * 未選択ならリンク文字を選択します。
-   */
   const selectedValue = hasSelection ? url : label;
 
   return createSelectionInsertion(text, selectedValue, false);
@@ -308,19 +262,14 @@ function createLinkInsertion(selectedText: string): MarkdownInsertion {
 
 function createCodeInsertion(selectedText: string): MarkdownInsertion {
   const content = hasSelectedText(selectedText) ? selectedText : "コードを入力";
-
   const firstLine = "```text";
-
   const text = [firstLine, content, "```"].join("\n");
-
   const contentStart = firstLine.length + 1;
 
   return {
     text,
     block: true,
-
     selectionStartOffset: contentStart,
-
     selectionEndOffset: contentStart + content.length,
   };
 }
@@ -331,7 +280,6 @@ function createInlineMathInsertion(selectedText: string): MarkdownInsertion {
 
 function createBlockMathInsertion(selectedText: string): MarkdownInsertion {
   const content = hasSelectedText(selectedText) ? selectedText : "x = y";
-
   const text = ["$$", content, "$$"].join("\n");
 
   return {
@@ -344,16 +292,13 @@ function createBlockMathInsertion(selectedText: string): MarkdownInsertion {
 
 function createTableInsertion(selectedText: string): MarkdownInsertion {
   const selectedValue = selectedText.trim();
-
   const firstCell = selectedValue || "項目";
-
   const text = [
     `| ${firstCell} | 内容 |`,
     "| :--- | :--- |",
     "| 項目1 | 内容1 |",
     "| 項目2 | 内容2 |",
   ].join("\n");
-
   const target = selectedValue ? "内容" : firstCell;
 
   return createSelectionInsertion(text, target);
@@ -369,17 +314,11 @@ const GRID_ELEMENT_DEFINITIONS: readonly MarkdownElementDefinition[] =
 
       return {
         id: `${columns}-columns`,
-
         categoryId: "slide",
-
         symbol: `${columns}`,
-
         label: `${columns}列レイアウト`,
-
         description: `内容を横方向に${columns}列で並べます。`,
-
         syntax: `<!-- grid: ${columns} -->`,
-
         createInsertion: (selectedText) => {
           return createGridInsertion(selectedText, columns);
         },
@@ -413,9 +352,7 @@ export const MARKDOWN_ELEMENTS: readonly MarkdownElementDefinition[] = [
       return {
         text,
         block: true,
-
         selectionStartOffset: text.length,
-
         selectionEndOffset: text.length,
       };
     },
@@ -555,5 +492,26 @@ export const MARKDOWN_ELEMENTS: readonly MarkdownElementDefinition[] = [
     description: "行と列で情報を整理します。",
     syntax: "| 項目 | 内容 |",
     createInsertion: createTableInsertion,
+  },
+  {
+    id: "spacing",
+    categoryId: "slide",
+    symbol: "↕",
+    label: "余白",
+    description: "8px単位の縦方向の余白を追加します。",
+    syntax: "<!-- spacing: 4 -->",
+
+    createInsertion: () => {
+      const size = "4";
+      const prefix = "<!-- spacing: ";
+      const text = `${prefix}${size} -->`;
+
+      return {
+        text,
+        block: true,
+        selectionStartOffset: prefix.length,
+        selectionEndOffset: prefix.length + size.length,
+      };
+    },
   },
 ];

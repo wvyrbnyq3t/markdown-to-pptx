@@ -362,21 +362,6 @@ button:disabled {
   flex-shrink: 0;
 }
 
-.mobile-slide-count {
-  display: inline-flex;
-  min-width: 20px;
-  height: 20px;
-  align-items: center;
-  justify-content: center;
-  margin-left: 2px;
-  padding: 0 6px;
-  border-radius: var(--radius-pill);
-  color: var(--color-text-muted);
-  background: var(--color-border-soft);
-  font-size: 11px;
-  line-height: 1;
-}
-
 .mobile-view-tab.active .mobile-slide-count {
   color: #ffffff;
   background: var(--c-active);
@@ -390,7 +375,7 @@ button:disabled {
   margin: var(--space-4) var(--space-4) 0;
   padding: var(--space-3) var(--space-4);
   border: 1px solid var(--color-error-border);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-sm);
   color: var(--color-error-text);
   background: var(--color-error-background);
   font-size: 14px;
@@ -401,12 +386,18 @@ button:disabled {
 ======================================== */
 
 .workspace {
+  --workspace-resizer-width: 16px;
+  --editor-pane-ratio: 46.5%;
+
   display: grid;
+
   grid-template-columns:
-    minmax(400px, 1fr)
-    minmax(500px, 1.15fr);
+    minmax(320px, var(--editor-pane-ratio))
+    var(--workspace-resizer-width)
+    minmax(480px, 1fr);
+
   flex: 1;
-  gap: var(--space-4);
+  gap: 0;
   min-height: 0;
   padding: var(--space-4);
 }
@@ -421,6 +412,7 @@ button:disabled {
   border: 1px solid var(--color-border-panel);
   border-radius: var(--radius-sm);
   background: var(--color-surface);
+  box-shadow: var(--shadow-panel);
 }
 
 .section-header {
@@ -446,6 +438,99 @@ button:disabled {
   margin: 4px 0 0;
   color: var(--color-text-subtle);
   font-size: 12px;
+}
+
+/* ========================================
+   ワークスペースのリサイズバー
+======================================== */
+
+.workspace-resizer {
+  position: relative;
+
+  display: flex;
+  width: var(--workspace-resizer-width);
+  min-width: var(--workspace-resizer-width);
+  min-height: 0;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  outline: none;
+  cursor: col-resize;
+  touch-action: none;
+  user-select: none;
+}
+
+.workspace-resizer-line {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  width: 2px;
+  border-radius: var(--radius-pill);
+  background: var(--color-border-section);
+  transform: translateX(-50%);
+  transition:
+    width var(--duration-normal),
+    background-color var(--duration-normal);
+}
+
+.workspace-resizer-grip {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  width: 12px;
+  min-height: 44px;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 4px;
+  border: 1px solid var(--color-border-input);
+  border-radius: var(--radius-pill);
+  background: var(--color-surface);
+  box-shadow: 0 2px 8px var(--color-shadow-soft);
+  transition:
+    border-color var(--duration-normal),
+    background-color var(--duration-normal),
+    transform var(--duration-normal);
+}
+
+.workspace-resizer-grip span {
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: var(--color-text-disabled);
+}
+
+.workspace-resizer:hover .workspace-resizer-line,
+.workspace-resizer.is-resizing .workspace-resizer-line {
+  background: var(--c-active);
+}
+
+.workspace-resizer:hover .workspace-resizer-grip,
+.workspace-resizer.is-resizing .workspace-resizer-grip {
+  border-color: var(--c-active);
+
+  background: var(--color-brand-soft);
+
+  transform: scale(1.05);
+}
+
+.workspace-resizer:hover .workspace-resizer-grip span,
+.workspace-resizer.is-resizing .workspace-resizer-grip span {
+  background: var(--c-active);
+}
+
+.workspace-resizer:focus-visible .workspace-resizer-grip {
+  outline: 3px solid var(--color-focus-ring);
+
+  outline-offset: 2px;
+
+  border-color: var(--c-active);
+}
+
+.workspace.is-resizing,
+.workspace.is-resizing * {
+  cursor: col-resize;
 }
 
 /* ========================================
@@ -540,6 +625,7 @@ button:disabled {
   overflow-y: auto;
   padding: 22px;
   background: var(--color-preview-background);
+  user-select: none ;
   scroll-behavior: smooth;
   scroll-snap-type: y mandatory;
 }

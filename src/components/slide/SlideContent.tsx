@@ -9,6 +9,7 @@ import {
   normalizeSlideGridColumns,
   splitSlideElementsIntoColumns,
 } from "../../utils/slideGrid";
+import { getSlideSpacingPx } from "../../utils/slideSpacing";
 
 import { MarkdownListView } from "./MarkdownListView";
 import { renderInlineRuns } from "./InlineContentRenderer";
@@ -205,6 +206,22 @@ function renderSlideElement(element: SlideElement, key: string): ReactNode {
             </tbody>
           </table>
         </div>
+      );
+    }
+    case "spacing": {
+      const spacingPx = getSlideSpacingPx(element.size);
+
+      return (
+        <div
+          key={key}
+          className="preview-spacing"
+          style={
+            {
+              "--preview-spacing-height": `${spacingPx}px`,
+            } as CSSProperties
+          }
+          aria-hidden="true"
+        />
       );
     }
 

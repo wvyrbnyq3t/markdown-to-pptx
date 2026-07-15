@@ -83,6 +83,10 @@ export type SlideElement =
     }
   | {
       type: "columnBreak";
+    }
+  | {
+      type: "spacing";
+      size: number;
     };
 
 export type SlideData = {

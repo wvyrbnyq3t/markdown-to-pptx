@@ -68,7 +68,6 @@
 
 .slide-header h3 {
   margin: 0;
-  overflow: hidden;
   color: var(--slide-primary-color);
   font-size: var(--slide-title-font-size);
   font-weight: 700;
@@ -437,4 +436,41 @@
 
 .preview-table a {
   color: inherit;
+}
+
+/* ========================================
+   Markdownによる任意余白
+======================================== */
+
+.slide-grid-column > .preview-spacing {
+  width: 100%;
+
+  height: var(--preview-spacing-height);
+
+  min-height: var(--preview-spacing-height);
+
+  flex: 0 0 var(--preview-spacing-height);
+
+  pointer-events: none;
+}
+
+/*
+ * Flexboxの通常gapを打ち消し、
+ * spacing要素の高さだけを余白にします。
+ */
+.slide-grid-column > .preview-spacing:not(:first-child) {
+  margin-top: calc(-1 * var(--slide-content-gap));
+}
+
+.slide-grid-column > .preview-spacing:not(:last-child) {
+  margin-bottom: calc(-1 * var(--slide-content-gap));
+}
+
+/*
+ * spacing直後の見出しに設定された
+ * 固有の上余白も打ち消します。
+ */
+.preview-spacing + .preview-subtitle,
+.preview-spacing + .preview-content-heading {
+  margin-top: 0;
 }

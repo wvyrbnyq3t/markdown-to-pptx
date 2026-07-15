@@ -46,6 +46,28 @@ function createSlide(title = ""): SlideData {
   };
 }
 
+function parseSpacingDirective(value: string | undefined): number | null {
+  if (!value) {
+    return null;
+  }
+
+  const match = value.trim().match(/^<!--\s*spacing\s*:\s*(\d+)\s*-->$/i);
+
+  const rawSize = match?.[1];
+
+  if (!rawSize) {
+    return null;
+  }
+
+  const size = Number.parseInt(rawSize, 10);
+
+  if (!Number.isSafeInteger(size) || size < 0) {
+    return null;
+  }
+
+  return size;
+}
+
 function parseGridColumnsDirective(
   value: string | undefined,
 ): SlideGridColumns | null {
@@ -54,7 +76,6 @@ function parseGridColumnsDirective(
   }
 
   const match = value.trim().match(/^<!--\s*grid\s*:\s*(\d+)\s*-->$/i);
-
   const rawColumns = match?.[1];
 
   if (!rawColumns) {
@@ -522,9 +543,32 @@ export function parseMarkdown(markdown: string): SlideData[] {
         continue;
       }
 
-      /*
-       * <!-- column -->
-       */
+      const spacingSize = parseSpacingDirective(node.value);
+
+      if (spacingSize !== null) {
+        const previousElement =
+          currentSlide.elements[currentSlide.elements.length - 1];
+
+        /*
+         * 連続する余白指定は1要素へまとめます。
+         *
+         * spacing: 2
+         * spacing: 3
+         * ↓
+         * spacing: 5
+         */
+        if (previousElement?.type === "spacing") {
+          previousElement.size += spacingSize;
+        } else {
+          currentSlide.elements.push({
+            type: "spacing",
+            size: spacingSize,
+          });
+        }
+
+        continue;
+      }
+
       if (isColumnBreakDirective(node.value)) {
         currentSlide.elements.push({
           type: "columnBreak",
