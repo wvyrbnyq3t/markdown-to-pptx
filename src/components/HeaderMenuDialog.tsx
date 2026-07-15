@@ -17,7 +17,7 @@ const MENU_LINKS: MenuLink[] = [
   {
     label: "使い方",
     description: "基本的なスライドの作成方法を確認します。",
-    href: "/#/guide",
+    href: "/markdown-to-pptx/#/guide",
   },
 ];
 
