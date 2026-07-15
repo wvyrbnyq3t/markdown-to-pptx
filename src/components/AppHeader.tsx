@@ -1,5 +1,4 @@
 import type { ChangeEvent, RefObject } from "react";
-import { useState } from "react";
 
 import type { PresentationSettings } from "../types/presentation";
 import type { SlideData } from "../types/slide";
@@ -11,10 +10,7 @@ import {
   LoadingIcon,
   MarkdownSaveIcon,
   SettingsIcon,
-  MenuIcon,
 } from "./ui/Icons";
-
-import { HeaderMenuDialog } from "./HeaderMenuDialog";
 
 type AppHeaderProps = {
   fileInputRef: RefObject<HTMLInputElement | null>;
@@ -43,28 +39,9 @@ export function AppHeader({
   onOpenSettings,
   onExport,
 }: AppHeaderProps) {
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
   return (
     <header className="app-header">
-      <button
-        type="button"
-        className="header-menu-button"
-        aria-label="メニューを開く"
-        aria-haspopup="dialog"
-        aria-expanded={isMenuOpen}
-        onClick={() => {
-          setIsMenuOpen(true);
-        }}
-      >
-        <MenuIcon />
-      </button>
-
-      <HeaderMenuDialog
-        isOpen={isMenuOpen}
-        onClose={() => {
-          setIsMenuOpen(false);
-        }}
-      />
+      {" "}
       <div className="header-actions">
         <PresentationModeLauncher
           slides={slides}
