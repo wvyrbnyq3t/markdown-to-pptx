@@ -26,7 +26,7 @@ type AppHeaderProps = {
   onExport: () => void | Promise<void>;
 };
 
-export function AppHeader({
+export function EditorHeader({
   fileInputRef,
   slides,
   settings,
@@ -50,6 +50,14 @@ export function AppHeader({
         />
         <button
           type="button"
+          className="secondary-button settings-button"
+          onClick={onOpenSettings}
+        >
+          <SettingsIcon />
+          <span>設定</span>
+        </button>
+        <button
+          type="button"
           className="secondary-button import-markdown-button"
           onClick={() => fileInputRef.current?.click()}
         >
@@ -63,14 +71,6 @@ export function AppHeader({
           onChange={onFileChange}
           hidden
         />
-        <button
-          type="button"
-          className="secondary-button settings-button"
-          onClick={onOpenSettings}
-        >
-          <SettingsIcon />
-          <span>設定</span>
-        </button>
         <button
           type="button"
           className="secondary-button export-markdown-button"

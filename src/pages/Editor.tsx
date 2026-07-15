@@ -1,6 +1,6 @@
 import "katex/dist/katex.min.css";
 
-import { AppHeader } from "../components/AppHeader";
+import { EditorHeader } from "../components/EditorHeader";
 import { MarkdownEditorPanel } from "../components/MarkdownEditorPanel";
 import { MobileViewTabs } from "../components/MobileViewTabs";
 import { PreviewPanel } from "../components/PreviewPanel";
@@ -17,7 +17,7 @@ function Home() {
 
   return (
     <div className="app">
-      <AppHeader
+      <EditorHeader
         fileInputRef={editor.fileInputRef}
         slides={editor.slides}
         settings={editor.settings}
