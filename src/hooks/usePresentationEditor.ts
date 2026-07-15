@@ -70,6 +70,7 @@ export function usePresentationEditor() {
   };
 
   const handleMarkdownChange = (value: string): void => {
+    // valueのテキストサイズ bytes でconsole.logで出力
     setMarkdown(value);
     setActionError("");
   };
