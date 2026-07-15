@@ -310,6 +310,12 @@ button:disabled {
   color: var(--c-active);
 }
 
+.secondary-button:disabled {
+  border-color: var(--color-border-input);
+  color: var(--color-text-disabled);
+  background: var(--color-surface-muted);
+}
+
 .primary-button:focus-visible,
 .secondary-button:focus-visible,
 .reset-settings-button:focus-visible,

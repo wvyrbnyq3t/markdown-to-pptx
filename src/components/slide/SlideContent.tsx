@@ -1,14 +1,16 @@
 import katex from "katex";
 import type { ReactNode } from "react";
 
+import type { SlideData, SlideElement } from "../../types/slide";
 import type { PresentationSettings } from "../../types/presentation";
 
-import type { SlideData, SlideElement } from "../../types/slide";
-
-import { splitSlideElementsIntoColumns } from "../../utils/slideGrid";
+import {
+  getSlideGridGapPx,
+  normalizeSlideGridColumns,
+  splitSlideElementsIntoColumns,
+} from "../../utils/slideGrid";
 
 import { MarkdownListView } from "./MarkdownListView";
-
 import { renderInlineRuns } from "./InlineContentRenderer";
 
 type TitleSlideProps = {
@@ -147,7 +149,9 @@ export function ContentSlide({
   pageNumber,
   settings,
 }: ContentSlideProps) {
-  const gridColumns = slide.gridColumns ?? 1;
+  const gridColumns = normalizeSlideGridColumns(slide.gridColumns);
+
+  const gridGapPx = getSlideGridGapPx(gridColumns);
 
   const columns = splitSlideElementsIntoColumns(slide.elements, gridColumns);
 
@@ -158,7 +162,12 @@ export function ContentSlide({
       </header>
 
       <div
-        className={`slide-body ` + `slide-grid ` + `slide-grid-${gridColumns}`}
+        className={"slide-body slide-grid"}
+        style={{
+          gridTemplateColumns: `repeat(${gridColumns}, minmax(0, 1fr))`,
+
+          columnGap: `${gridGapPx}px`,
+        }}
       >
         {columns.map((columnElements, columnIndex) => (
           <div

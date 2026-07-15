@@ -23,7 +23,7 @@ export type ContentHeadingLevel = 3 | 4 | 5 | 6;
 /**
  * スライドの横方向の分割数。
  */
-export type SlideGridColumns = 1 | 2 | 3;
+export type SlideGridColumns = number;
 
 export type MarkdownListItem = {
   runs: InlineContent[];

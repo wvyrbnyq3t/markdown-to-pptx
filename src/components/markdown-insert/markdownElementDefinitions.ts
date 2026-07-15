@@ -127,67 +127,59 @@ function createNewSlideInsertion(selectedText: string): MarkdownInsertion {
   return createSelectionInsertion(text, hasSelection ? bodyPlaceholder : title);
 }
 
+function getGridColumnLabels(columns: number): string[] {
+  if (columns === 2) {
+    return ["左側", "右側"];
+  }
+
+  if (columns === 3) {
+    return ["左側", "中央", "右側"];
+  }
+
+  return Array.from(
+    {
+      length: columns,
+    },
+    (_, index) => `${index + 1}列目`,
+  );
+}
+
 function createGridInsertion(
   selectedText: string,
-  columns: 2 | 3,
+  columns: number,
 ): MarkdownInsertion {
   const hasSelection = hasSelectedText(selectedText);
 
-  const leftContent = hasSelection
-    ? normalizeSelectedText(selectedText)
-    : "左側の内容";
+  const labels = getGridColumnLabels(columns);
 
-  if (columns === 2) {
-    const rightContent = "右側の内容";
+  const contents = labels.map((label, index) => {
+    if (index === 0 && hasSelection) {
+      return normalizeSelectedText(selectedText);
+    }
 
-    const text = [
-      "<!-- grid: 2 -->",
-      "",
-      "## 左側",
-      "",
-      leftContent,
-      "",
-      "<!-- column -->",
-      "",
-      "## 右側",
-      "",
-      rightContent,
-    ].join("\n");
+    return `${label}の内容`;
+  });
 
-    return createSelectionInsertion(
-      text,
-      hasSelection ? rightContent : leftContent,
-    );
-  }
+  const lines: string[] = [`<!-- grid: ${columns} -->`, ""];
 
-  const centerContent = "中央の内容";
+  labels.forEach((label, index) => {
+    lines.push(`## ${label}`, "", contents[index] ?? `${label}の内容`);
 
-  const rightContent = "右側の内容";
+    if (index < labels.length - 1) {
+      lines.push("", "<!-- column -->", "");
+    }
+  });
 
-  const text = [
-    "<!-- grid: 3 -->",
-    "",
-    "## 左側",
-    "",
-    leftContent,
-    "",
-    "<!-- column -->",
-    "",
-    "## 中央",
-    "",
-    centerContent,
-    "",
-    "<!-- column -->",
-    "",
-    "## 右側",
-    "",
-    rightContent,
-  ].join("\n");
+  const text = lines.join("\n");
 
-  return createSelectionInsertion(
-    text,
-    hasSelection ? centerContent : leftContent,
-  );
+  /*
+   * 選択中の文章を1列目へ入れた場合は、
+   * 2列目の仮テキストを選択します。
+   */
+  const selectionTarget =
+    hasSelection && contents.length > 1 ? contents[1] : contents[0];
+
+  return createSelectionInsertion(text, selectionTarget ?? text);
 }
 
 function createHeadingInsertion(
@@ -350,6 +342,34 @@ function createBlockMathInsertion(selectedText: string): MarkdownInsertion {
   };
 }
 
+const GRID_ELEMENT_DEFINITIONS: readonly MarkdownElementDefinition[] =
+  Array.from(
+    {
+      length: 2,
+    },
+    (_, index) => {
+      const columns = index + 2;
+
+      return {
+        id: `${columns}-columns`,
+
+        categoryId: "slide",
+
+        symbol: `${columns}`,
+
+        label: `${columns}列レイアウト`,
+
+        description: `内容を横方向に${columns}列で並べます。`,
+
+        syntax: `<!-- grid: ${columns} -->`,
+
+        createInsertion: (selectedText) => {
+          return createGridInsertion(selectedText, columns);
+        },
+      };
+    },
+  );
+
 export const MARKDOWN_ELEMENTS: readonly MarkdownElementDefinition[] = [
   {
     id: "new-slide",
@@ -360,28 +380,9 @@ export const MARKDOWN_ELEMENTS: readonly MarkdownElementDefinition[] = [
     syntax: "# スライドタイトル",
     createInsertion: createNewSlideInsertion,
   },
-  {
-    id: "two-columns",
-    categoryId: "slide",
-    symbol: "▥",
-    label: "2列レイアウト",
-    description: "内容を左右に並べます。",
-    syntax: "<!-- grid: 2 -->",
-    createInsertion: (selectedText) => {
-      return createGridInsertion(selectedText, 2);
-    },
-  },
-  {
-    id: "three-columns",
-    categoryId: "slide",
-    symbol: "▦",
-    label: "3列レイアウト",
-    description: "内容を3列に並べます。",
-    syntax: "<!-- grid: 3 -->",
-    createInsertion: (selectedText) => {
-      return createGridInsertion(selectedText, 3);
-    },
-  },
+
+  ...GRID_ELEMENT_DEFINITIONS,
+
   {
     id: "column-break",
     categoryId: "slide",

@@ -117,7 +117,7 @@
 }
 
 .preview-subtitle {
-  color: var(--slide-primary-color);
+  color: var(--slide-accent-color);
   font-size: var(--slide-subtitle-font-size);
   font-weight: 700;
   line-height: 1;
@@ -364,21 +364,8 @@
 /* ========================================
    スライドグリッド
 ======================================== */
-
 .slide-grid {
   grid-template-rows: minmax(0, 1fr);
-}
-
-.slide-grid-1 {
-  grid-template-columns: minmax(0, 1fr);
-}
-
-.slide-grid-2 {
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-}
-
-.slide-grid-3 {
-  grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
 .slide-grid-column {

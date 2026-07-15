@@ -18,6 +18,8 @@ import type {
   SlideGridColumns,
 } from "../../types/slide";
 
+import { isValidSlideGridColumns } from "../../utils/slideGrid";
+
 type GenericNode = {
   type: string;
   value?: string;
@@ -48,19 +50,21 @@ function parseGridColumnsDirective(
     return null;
   }
 
-  const match = value.trim().match(/^<!--\s*grid\s*:\s*([123])\s*-->$/i);
+  const match = value.trim().match(/^<!--\s*grid\s*:\s*(\d+)\s*-->$/i);
 
-  if (!match) {
+  const rawColumns = match?.[1];
+
+  if (!rawColumns) {
     return null;
   }
 
-  const columns = Number(match[1]);
+  const columns = Number.parseInt(rawColumns, 10);
 
-  if (columns === 1 || columns === 2 || columns === 3) {
-    return columns;
+  if (!isValidSlideGridColumns(columns)) {
+    return null;
   }
 
-  return null;
+  return columns;
 }
 
 function isColumnBreakDirective(value: string | undefined): boolean {

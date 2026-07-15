@@ -16,7 +16,11 @@ import {
   SLIDE_WIDTH_PX,
 } from "../../utils/slideUnits";
 
-import { splitSlideElementsIntoColumns } from "../../utils/slideGrid";
+import {
+  getSlideGridGapPx,
+  normalizeSlideGridColumns,
+  splitSlideElementsIntoColumns,
+} from "../../utils/slideGrid";
 
 import { renderMathSvg } from "../math/renderMath";
 
@@ -26,7 +30,6 @@ const BODY_LINE_HEIGHT = 1.7;
 const TEXT_HEIGHT_SAFETY_RATIO = 1.1;
 const CONTENT_HEADING_TOP_GAP_PX = 48;
 const QUOTE_LINE_HEIGHT = 1.5;
-const GRID_GAP_PX = 48;
 
 /**
  * PowerPoint上のフォントメトリクスを考慮し、
@@ -502,16 +505,23 @@ export async function generatePptx(
       slideMarginPx -
       (settings.showPageNumber ? pageNumberHeightPx + slideMarginPx : 0);
 
-    const gridColumns = slideData.gridColumns ?? 1;
+    const gridColumns = normalizeSlideGridColumns(slideData.gridColumns);
+
+    const gridGapPx = getSlideGridGapPx(gridColumns);
 
     const columns = splitSlideElementsIntoColumns(
       slideData.elements,
       gridColumns,
     );
 
-    const totalGridGapPx = GRID_GAP_PX * (gridColumns - 1);
+    const totalGridGapPx = gridGapPx * (gridColumns - 1);
 
-    const columnWidthPx = (slideContentWidthPx - totalGridGapPx) / gridColumns;
+    const availableColumnWidthPx = Math.max(
+      gridColumns,
+      slideContentWidthPx - totalGridGapPx,
+    );
+
+    const columnWidthPx = availableColumnWidthPx / gridColumns;
 
     for (const [columnIndex, columnElements] of columns.entries()) {
       /*
@@ -520,7 +530,7 @@ export async function generatePptx(
        * この列専用の値として定義する。
        */
       const marginPx =
-        slideMarginPx + columnIndex * (columnWidthPx + GRID_GAP_PX);
+        slideMarginPx + columnIndex * (columnWidthPx + gridGapPx);
 
       const contentWidthPx = columnWidthPx;
 
@@ -574,7 +584,7 @@ export async function generatePptx(
               fontSize: pxToPoints(settings.subtitleFontSizePx),
 
               bold: true,
-              color: primaryColor,
+              color: accentColor,
 
               lineSpacingMultiple: 1,
 
