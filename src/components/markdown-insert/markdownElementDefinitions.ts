@@ -5,6 +5,7 @@ export type MarkdownElementCategoryId =
   | "text"
   | "list"
   | "decoration"
+  | "grid"
   | "advanced";
 
 export type MarkdownElementCategory = {
@@ -33,6 +34,11 @@ export const MARKDOWN_ELEMENT_CATEGORIES: readonly MarkdownElementCategory[] = [
     id: "text",
     label: "文章",
     description: "見出しや本文を追加します。",
+  },
+  {
+    id: "grid",
+    label: "グリッド",
+    description: "内容を横方向に並べます。",
   },
   {
     id: "list",
@@ -314,7 +320,7 @@ const GRID_ELEMENT_DEFINITIONS: readonly MarkdownElementDefinition[] =
 
       return {
         id: `${columns}-columns`,
-        categoryId: "slide",
+        categoryId: "grid",
         symbol: `${columns}`,
         label: `${columns}列レイアウト`,
         description: `内容を横方向に${columns}列で並べます。`,
@@ -341,7 +347,7 @@ export const MARKDOWN_ELEMENTS: readonly MarkdownElementDefinition[] = [
 
   {
     id: "column-break",
-    categoryId: "slide",
+    categoryId: "grid",
     symbol: "→",
     label: "次の列",
     description: "グリッドの次の列へ移動します。",

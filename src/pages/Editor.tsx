@@ -1,19 +1,29 @@
-import "katex/dist/katex.min.css";
-
+// components
 import { EditorHeader } from "../components/EditorHeader";
 import { MarkdownEditorPanel } from "../components/MarkdownEditorPanel";
 import { MobileViewTabs } from "../components/MobileViewTabs";
 import { PreviewPanel } from "../components/PreviewPanel";
 import { SettingsDialog } from "../components/settings/SettingsDialog";
 import { WorkspaceResizer } from "../components/WorkspaceResizer";
+
+// hooks
 import { usePresentationEditor } from "../hooks/usePresentationEditor";
 import { useWorkspaceResize } from "../hooks/useWorkspaceResize";
+import { useState } from "react";
+
+// stylesheets
+import "katex/dist/katex.min.css";
 
 function Home() {
+  const [activeMarkdownSlideIndex, setActiveMarkdownSlideIndex] = useState(0);
+
   const editor = usePresentationEditor();
   const workspaceResize = useWorkspaceResize();
   const canExport =
     editor.slides.length > 0 || editor.settings.includeTitleSlide;
+
+  const activePreviewSlideIndex =
+    activeMarkdownSlideIndex + (editor.settings.includeTitleSlide ? 1 : 0);
 
   return (
     <div className="app">
@@ -60,6 +70,7 @@ function Home() {
           mobileView={editor.mobileView}
           onMarkdownChange={editor.handleMarkdownChange}
           onFileNameChange={editor.setFileName}
+          onCursorSlideChange={setActiveMarkdownSlideIndex}
         />
         <WorkspaceResizer
           editorRatio={workspaceResize.editorRatio}
@@ -77,6 +88,7 @@ function Home() {
           slideStyle={editor.slideStyle}
           totalSlideCount={editor.totalSlideCount}
           mobileView={editor.mobileView}
+          activeSlideIndex={activePreviewSlideIndex}
         />
       </main>
       <SettingsDialog

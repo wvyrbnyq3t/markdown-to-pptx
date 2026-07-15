@@ -1,0 +1,120 @@
+/* Sheet */
+.l-sheet {
+  background-color: #ffffff;
+  overflow: hidden auto;
+}
+
+.l-sheet--top,
+.l-sheet--bottom {
+  height: max-content;
+  width: min(100%, var(--w-pc));
+  max-height: var(--sheet-max-height);
+
+  &.l-sheet--sm {
+    --sheet-max-height: 40dvh;
+    animation-duration: 0.2s;
+  }
+  &.l-sheet--md {
+    --sheet-max-height: 50dvh;
+    animation-duration: 0.2s;
+  }
+  &.l-sheet--lg {
+    --sheet-max-height: 75dvh;
+    animation-duration: 0.4s;
+  }
+  &.l-sheet--full {
+    --sheet-max-height: 100dvh;
+    animation-duration: 0.4s;
+  }
+}
+.l-sheet--top {
+  animation-name: slideDownFromTop;
+  margin-top: 0;
+  margin-bottom: auto;
+}
+.l-sheet--bottom {
+  animation-name: slideUpFromBottom;
+  margin-top: auto;
+  margin-bottom: 0;
+}
+
+.l-sheet--left,
+.l-sheet--right {
+  height: 100dvh;
+  width: var(--sheet-max-width);
+
+  &.l-sheet--sm {
+    --sheet-max-width: calc(min(100dvw, var(--w-pc)) * 0.5);
+    animation-duration: 0.2s;
+  }
+  &.l-sheet--md {
+    --sheet-max-width: calc(min(100dvw, var(--w-pc)) * 0.75);
+    animation-duration: 0.2s;
+  }
+  &.l-sheet--lg {
+    --sheet-max-width: calc(min(100dvw, var(--w-pc)) * 0.9);
+    animation-duration: 0.4s;
+  }
+  &.l-sheet--full {
+    --sheet-max-width: min(100dvw, var(--w-pc));
+    animation-duration: 0.4s;
+  }
+}
+.l-sheet--left {
+  animation-name: slideDownFromLeft;
+  margin-left: 0;
+  margin-right: auto;
+}
+.l-sheet--right {
+  animation-name: slideUpFromRight;
+  margin-left: auto;
+  margin-right: 0;
+}
+
+@keyframes slideDownFromTop {
+  0% {
+    transform: translateY(-100%);
+  }
+  100% {
+    transform: translateY(0);
+  }
+}
+@keyframes slideUpFromRight {
+  0% {
+    transform: translateX(100%);
+  }
+  100% {
+    transform: translateX(0);
+  }
+}
+@keyframes slideUpFromBottom {
+  0% {
+    transform: translateY(100%);
+  }
+  100% {
+    transform: translateY(0);
+  }
+}
+@keyframes slideDownFromLeft {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(0);
+  }
+}
+
+.l-sheet-header--fixed {
+  width: 100%;
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 10;
+}
+.l-sheet-footer  {
+  position: sticky;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  z-index: 10;
+}

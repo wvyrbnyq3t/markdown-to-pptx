@@ -21,6 +21,13 @@
     width: 32px !important;
     min-height: 0 !important;
   }
+  .preview-scroll-area .slide-preview-item {
+    padding: var(--space-1) 0;
+
+    .slide-information {
+      display: none;
+    }
+  }
 }
 
 @media (max-width: 1000px) {
@@ -66,7 +73,7 @@
     font-weight: 700;
     transition:
       color var(--duration-normal),
-      background-color var(--duration-normal),
+      background-color var(--duration-normal);
   }
 
   .mobile-view-tab.active {

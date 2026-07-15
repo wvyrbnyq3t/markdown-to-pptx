@@ -6,6 +6,7 @@ import {
   insertMarkdownAtSelection,
   type MarkdownSelection,
 } from "../utils/insertMarkdown";
+import { getMarkdownSlideIndexAtPosition } from "../utils/markdownSlidePosition";
 
 import { MarkdownElementSheet } from "./markdown-insert/MarkdownElementSheet";
 
@@ -17,8 +18,8 @@ type MarkdownEditorPanelProps = {
   mobileView: MobileView;
 
   onMarkdownChange: (value: string) => void;
-
   onFileNameChange: (value: string) => void;
+  onCursorSlideChange?: (slideIndex: number) => void;
 };
 
 type MarkdownEditorState = {
@@ -33,6 +34,7 @@ export function MarkdownEditorPanel({
   mobileView,
   onMarkdownChange,
   onFileNameChange,
+  onCursorSlideChange,
 }: MarkdownEditorPanelProps) {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -51,6 +53,26 @@ export function MarkdownEditorPanel({
   const [isElementSheetOpen, setIsElementSheetOpen] = useState(false);
 
   const lineCount = markdown.split(/\r?\n/).length;
+
+  // カーソル位置を特定する
+  const lastCursorSlideIndexRef = useRef(-1);
+  const notifyCursorSlide = (
+    textarea: HTMLTextAreaElement,
+    currentMarkdown = textarea.value,
+  ): void => {
+    const slideIndex = getMarkdownSlideIndexAtPosition(
+      currentMarkdown,
+      textarea.selectionStart,
+    );
+
+    if (slideIndex === lastCursorSlideIndexRef.current) {
+      return;
+    }
+
+    lastCursorSlideIndexRef.current = slideIndex;
+
+    onCursorSlideChange?.(slideIndex);
+  };
 
   /**
    * 現在のカーソル位置と
@@ -246,11 +268,26 @@ export function MarkdownEditorPanel({
 
               scrollLeft: event.currentTarget.scrollLeft,
             };
+            notifyCursorSlide(event.currentTarget, event.currentTarget.value);
           }}
-          onSelect={rememberEditorState}
-          onClick={rememberEditorState}
-          onKeyUp={rememberEditorState}
-          onFocus={rememberEditorState}
+          onSelect={(e) => {
+            rememberEditorState;
+            notifyCursorSlide(e.currentTarget);
+          }}
+          onClick={(e) => {
+            rememberEditorState;
+            notifyCursorSlide(e.currentTarget);
+          }}
+          onKeyUp={(e) => {
+            rememberEditorState;
+            notifyCursorSlide(e.currentTarget);
+          }}
+          onFocus={
+            (e) => {
+              rememberEditorState;
+              notifyCursorSlide(e.currentTarget);
+            }
+          }
           onScroll={rememberEditorState}
           spellCheck={false}
           aria-label="Markdown入力欄"

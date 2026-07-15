@@ -3,6 +3,7 @@ import { useState } from "react";
 
 // stylesheets
 import "../css/guide.css";
+import { Link } from "react-router-dom";
 
 type CodeExampleProps = {
   title: string;
@@ -229,9 +230,9 @@ const GuidePage = () => {
     <div className="guide-page">
       <header className="guide-header">
         <div className="guide-header-inner">
-          <a href="/">
+          <Link to="/">
             <span className="guide-header-title">ポンっ！</span>
-          </a>
+          </Link>
         </div>
       </header>
 
@@ -242,9 +243,9 @@ const GuidePage = () => {
             <br />
             気づけばスライドが完成している
           </h1>
-          <a href="/" className="primary-button guide-start-button">
+          <Link to="/" className="primary-button guide-start-button">
             とりあえず作ってみる
-          </a>
+          </Link>
         </section>
 
         <nav className="guide-navigation" aria-label="ガイドの目次">
@@ -498,9 +499,9 @@ const GuidePage = () => {
             <h2>やることはキーボードを打つだけ！</h2>
             <p>メモ感覚で、誰でも簡単にできちゃう</p>
 
-            <a href="/" className="primary-button">
+            <Link to="/" className="primary-button">
               エディターへ戻る
-            </a>
+            </Link>
           </section>
         </div>
       </main>

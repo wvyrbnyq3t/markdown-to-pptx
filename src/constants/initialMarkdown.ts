@@ -1,4 +1,6 @@
-export const INITIAL_MARKDOWN = String.raw`# Markdownからスライドを作成
+export const INITIAL_MARKDOWN = String.raw
+
+`# Markdownからスライドを作成
 
 左側にMarkdownを入力すると、右側にスライドのプレビューが表示されます。
 
