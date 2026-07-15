@@ -182,6 +182,12 @@ export function SettingsDialog({
               fallback={DEFAULT_PRESENTATION_SETTINGS.accentColor}
               onChange={(value) => onChange("accentColor", value)}
             />
+            <ColorSetting
+              label="表のヘッダー色"
+              value={settings.tableHeaderColor}
+              fallback={DEFAULT_PRESENTATION_SETTINGS.tableHeaderColor}
+              onChange={(value) => onChange("tableHeaderColor", value)}
+            />
           </SettingsSection>
 
           <SettingsSection title="ページ番号">
@@ -251,7 +257,7 @@ export function SettingsDialog({
             初期設定に戻す
           </button>
           <button type="button" className="primary-button" onClick={onClose}>
-              保存する
+            保存する
           </button>
         </footer>
       </div>

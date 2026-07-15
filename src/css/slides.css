@@ -1,3 +1,9 @@
+:root {
+  --slide-table-header-color: #2563eb;
+
+  --slide-table-header-text-color: #ffffff;
+}
+
 /* ========================================
    タイトルページ
 ======================================== */
@@ -379,4 +385,56 @@
 .slide-grid-column > * {
   flex-shrink: 0;
   margin: 0;
+}
+
+/* ========================================
+   Markdownテーブル
+======================================== */
+
+.preview-table-wrapper {
+  width: 100%;
+  min-width: 0;
+  overflow: hidden;
+  border: 1px solid rgb(15 23 42 / 14%);
+  background: var(--slide-secondary-color);
+}
+
+.preview-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  table-layout: fixed;
+  color: var(--slide-text-color);
+  font-size: calc(var(--slide-body-font-size) * 0.72);
+  line-height: 1.4;
+}
+
+.preview-table th,
+.preview-table td {
+  padding: 16px 20px;
+  overflow-wrap: anywhere;
+  vertical-align: middle;
+}
+
+.preview-table th {
+  color: var(--slide-table-header-text-color);
+  background: var(--slide-table-header-color);
+  font-weight: 700;
+}
+
+.preview-table td {
+  background: var(--slide-secondary-color);
+}
+
+.preview-table th:not(:last-child),
+.preview-table td:not(:last-child) {
+  border-right: 1px solid rgb(15 23 42 / 12%);
+}
+
+.preview-table tbody tr:not(:last-child) td {
+  border-bottom: 1px solid rgb(15 23 42 / 12%);
+}
+
+.preview-table a {
+  color: inherit;
 }

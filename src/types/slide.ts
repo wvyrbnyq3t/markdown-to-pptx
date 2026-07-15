@@ -78,10 +78,10 @@ export type SlideElement =
       latex: string;
     }
   | {
-      /**
-       * 次のグリッド列へ移動する。
-       * 画面やPPTXには直接表示しない。
-       */
+      type: "table";
+      table: MarkdownTable;
+    }
+  | {
       type: "columnBreak";
     };
 
@@ -95,4 +95,19 @@ export type SlideData = {
   gridColumns: SlideGridColumns;
 
   elements: SlideElement[];
+};
+
+export type TableAlignment = "left" | "center" | "right" | null;
+
+export type MarkdownTableCell = {
+  runs: InlineContent[];
+};
+
+export type MarkdownTableRow = {
+  cells: MarkdownTableCell[];
+};
+
+export type MarkdownTable = {
+  alignments: TableAlignment[];
+  rows: MarkdownTableRow[];
 };

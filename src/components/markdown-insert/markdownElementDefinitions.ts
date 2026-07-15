@@ -342,6 +342,23 @@ function createBlockMathInsertion(selectedText: string): MarkdownInsertion {
   };
 }
 
+function createTableInsertion(selectedText: string): MarkdownInsertion {
+  const selectedValue = selectedText.trim();
+
+  const firstCell = selectedValue || "項目";
+
+  const text = [
+    `| ${firstCell} | 内容 |`,
+    "| :--- | :--- |",
+    "| 項目1 | 内容1 |",
+    "| 項目2 | 内容2 |",
+  ].join("\n");
+
+  const target = selectedValue ? "内容" : firstCell;
+
+  return createSelectionInsertion(text, target);
+}
+
 const GRID_ELEMENT_DEFINITIONS: readonly MarkdownElementDefinition[] =
   Array.from(
     {
@@ -529,5 +546,14 @@ export const MARKDOWN_ELEMENTS: readonly MarkdownElementDefinition[] = [
     description: "大きな数式を中央に表示します。",
     syntax: "$$ x = y $$",
     createInsertion: createBlockMathInsertion,
+  },
+  {
+    id: "table",
+    categoryId: "text",
+    symbol: "▦",
+    label: "表",
+    description: "行と列で情報を整理します。",
+    syntax: "| 項目 | 内容 |",
+    createInsertion: createTableInsertion,
   },
 ];

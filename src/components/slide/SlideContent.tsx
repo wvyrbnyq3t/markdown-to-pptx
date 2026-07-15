@@ -1,5 +1,5 @@
 import katex from "katex";
-import type { ReactNode } from "react";
+import type { CSSProperties, ReactNode } from "react";
 
 import type { SlideData, SlideElement } from "../../types/slide";
 import type { PresentationSettings } from "../../types/presentation";
@@ -33,6 +33,16 @@ export function TitleSlide({ settings }: TitleSlideProps) {
       </div>
     </div>
   );
+}
+
+function getTableCellAlignment(
+  alignment: "left" | "center" | "right" | null | undefined,
+): CSSProperties["textAlign"] {
+  if (alignment === "center" || alignment === "right") {
+    return alignment;
+  }
+
+  return "left";
 }
 
 type ContentSlideProps = {
@@ -138,6 +148,65 @@ function renderSlideElement(element: SlideElement, key: string): ReactNode {
 
     case "columnBreak":
       return null;
+
+    case "table": {
+      const [headerRow, ...bodyRows] = element.table.rows;
+
+      if (!headerRow) {
+        return null;
+      }
+
+      return (
+        <div key={key} className="preview-table-wrapper">
+          <table className="preview-table">
+            <thead>
+              <tr>
+                {headerRow.cells.map((cell, cellIndex) => (
+                  <th
+                    key={`${key}-header-${cellIndex}`}
+                    style={{
+                      textAlign: getTableCellAlignment(
+                        element.table.alignments[cellIndex],
+                      ),
+                    }}
+                  >
+                    {renderInlineRuns(cell.runs, `${key}-header-${cellIndex}`)}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+
+            <tbody>
+              {bodyRows.map((row, rowIndex) => (
+                <tr key={`${key}-row-${rowIndex}`}>
+                  {headerRow.cells.map((_, cellIndex) => {
+                    const cell = row.cells[cellIndex];
+
+                    return (
+                      <td
+                        key={`${key}-row-${rowIndex}-cell-${cellIndex}`}
+                        style={{
+                          textAlign: getTableCellAlignment(
+                            element.table.alignments[cellIndex],
+                          ),
+                        }}
+                      >
+                        {cell
+                          ? renderInlineRuns(
+                              cell.runs,
+                              `${key}-row-${rowIndex}-cell-${cellIndex}`,
+                            )
+                          : null}
+                      </td>
+                    );
+                  })}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      );
+    }
 
     default:
       return null;

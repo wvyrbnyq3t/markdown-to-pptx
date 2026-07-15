@@ -10,6 +10,7 @@ export type PresentationSettings = {
   secondaryColor: string;
   textColor: string;
   accentColor: string;
+  tableHeaderColor: string;
 
   titleFontSizePx: number;
   subtitleFontSizePx: number;
@@ -39,7 +40,7 @@ export const DEFAULT_PRESENTATION_SETTINGS: PresentationSettings = {
   secondaryColor: "#FFFFFF",
   textColor: "#334155",
   accentColor: "#F97316",
-
+  tableHeaderColor: "#E0E7FF",
   titleFontSizePx: 56,
   subtitleFontSizePx: 40,
   bodyFontSizePx: 34,

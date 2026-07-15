@@ -39,18 +39,30 @@ export function createSlideStyle(settings: PresentationSettings): SlideStyle {
     settings.primaryColor,
     DEFAULT_PRESENTATION_SETTINGS.primaryColor,
   );
+
   const secondaryColor = normalizeHexColor(
     settings.secondaryColor,
     DEFAULT_PRESENTATION_SETTINGS.secondaryColor,
   );
+
   const textColor = normalizeHexColor(
     settings.textColor,
     DEFAULT_PRESENTATION_SETTINGS.textColor,
   );
+
   const accentColor = normalizeHexColor(
     settings.accentColor,
     DEFAULT_PRESENTATION_SETTINGS.accentColor,
   );
+
+  const tableHeaderColor = normalizeHexColor(
+    settings.tableHeaderColor,
+    DEFAULT_PRESENTATION_SETTINGS.tableHeaderColor,
+  );
+  const tableHeaderTextColor = getReadableTextColor({
+    ...settings,
+    primaryColor: tableHeaderColor,
+  });
 
   return {
     "--slide-margin": `${settings.marginPx}px`,
@@ -59,6 +71,8 @@ export function createSlideStyle(settings: PresentationSettings): SlideStyle {
     "--slide-secondary-color": secondaryColor,
     "--slide-text-color": textColor,
     "--slide-accent-color": accentColor,
+    "--slide-table-header-color": tableHeaderColor,
+    "--slide-table-header-text-color": tableHeaderTextColor,
     "--slide-title-font-size": `${settings.titleFontSizePx}px`,
     "--slide-subtitle-font-size": `${settings.subtitleFontSizePx}px`,
     "--slide-body-font-size": `${settings.bodyFontSizePx}px`,
@@ -67,7 +81,9 @@ export function createSlideStyle(settings: PresentationSettings): SlideStyle {
     "--slide-math-font-size": `${settings.mathFontSizePx}px`,
     "--slide-page-number-font-size": `${settings.pageNumberFontSizePx}px`,
     "--title-page-title-font-size": `${settings.titlePageTitleFontSizePx}px`,
-    "--title-page-subtitle-font-size": `${settings.titlePageSubtitleFontSizePx}px`,
+    "--title-page-subtitle-font-size": `${
+      settings.titlePageSubtitleFontSizePx
+    }px`,
   };
 }
 
@@ -93,6 +109,10 @@ export function normalizePresentationSettings(
     accentColor: normalizeHexColor(
       settings.accentColor,
       DEFAULT_PRESENTATION_SETTINGS.accentColor,
+    ),
+    tableHeaderColor: normalizeHexColor(
+      settings.tableHeaderColor,
+      DEFAULT_PRESENTATION_SETTINGS.tableHeaderColor,
     ),
     titleFontSizePx: clamp(settings.titleFontSizePx, 24, 120),
     subtitleFontSizePx: clamp(settings.subtitleFontSizePx, 20, 96),
@@ -131,4 +151,51 @@ export function saveMarkdown(markdown: string, fileName: string): void {
   link.click();
   link.remove();
   URL.revokeObjectURL(url);
+}
+
+/**
+ * 背景色に対して読みやすい文字色を返します。
+ *
+ * 白と黒のコントラスト比を比較し、
+ * よりコントラストが高い方を選択します。
+ */
+export function getReadableTextColor(settings: PresentationSettings): string {
+  const backgroundColor = settings.primaryColor;
+  const fallbackBackgroundColor = DEFAULT_PRESENTATION_SETTINGS.primaryColor;
+
+  const normalizedColor = normalizeHexColor(
+    backgroundColor,
+    fallbackBackgroundColor,
+  );
+
+  const hex = normalizedColor.replace("#", "");
+
+  const red = Number.parseInt(hex.slice(0, 2), 16);
+
+  const green = Number.parseInt(hex.slice(2, 4), 16);
+
+  const blue = Number.parseInt(hex.slice(4, 6), 16);
+
+  const toLinearColor = (colorValue: number): number => {
+    const normalizedValue = colorValue / 255;
+
+    if (normalizedValue <= 0.04045) {
+      return normalizedValue / 12.92;
+    }
+
+    return Math.pow((normalizedValue + 0.055) / 1.055, 2.4);
+  };
+
+  const relativeLuminance =
+    0.2126 * toLinearColor(red) +
+    0.7152 * toLinearColor(green) +
+    0.0722 * toLinearColor(blue);
+
+  const whiteContrastRatio = 1.05 / (relativeLuminance + 0.05);
+
+  const blackContrastRatio = (relativeLuminance + 0.05) / 0.05;
+
+  return whiteContrastRatio >= blackContrastRatio
+    ? "#FFFFFF"
+    : settings.textColor;
 }

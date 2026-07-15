@@ -12,10 +12,13 @@ import type {
   InlineStyle,
   MarkdownList,
   MarkdownListItem,
+  MarkdownTable,
+  MarkdownTableRow,
   QuoteLine,
   SlideData,
   SlideElement,
   SlideGridColumns,
+  TableAlignment,
 } from "../../types/slide";
 
 import { isValidSlideGridColumns } from "../../utils/slideGrid";
@@ -29,9 +32,9 @@ type GenericNode = {
   depth?: number;
   children?: GenericNode[];
   lang?: string | null;
-
   ordered?: boolean | null;
   start?: number | null;
+  align?: Array<"left" | "center" | "right" | null>;
 };
 
 function createSlide(title = ""): SlideData {
@@ -264,6 +267,58 @@ function parseInlineChildren(children: GenericNode[] = []): InlineContent[] {
   return mergeInlineRuns(children.flatMap((child) => parseInlineNode(child)));
 }
 
+function normalizeTableAlignment(value: unknown): TableAlignment {
+  if (value === "left" || value === "center" || value === "right") {
+    return value;
+  }
+
+  return null;
+}
+
+function parseMarkdownTableRow(node: GenericNode): MarkdownTableRow {
+  return {
+    cells: (node.children ?? [])
+      .filter((child) => {
+        return child.type === "tableCell";
+      })
+      .map((cell) => {
+        return {
+          runs: parseInlineChildren(cell.children),
+        };
+      }),
+  };
+}
+
+function parseMarkdownTable(node: GenericNode): MarkdownTable {
+  const rows = (node.children ?? [])
+    .filter((child) => {
+      return child.type === "tableRow";
+    })
+    .map(parseMarkdownTableRow);
+
+  const columnCount = Math.max(
+    node.align?.length ?? 0,
+    ...rows.map((row) => {
+      return row.cells.length;
+    }),
+    0,
+  );
+
+  const alignments = Array.from(
+    {
+      length: columnCount,
+    },
+    (_, index) => {
+      return normalizeTableAlignment(node.align?.[index]);
+    },
+  );
+
+  return {
+    rows,
+    alignments,
+  };
+}
+
 function parseMarkdownListItem(node: GenericNode): MarkdownListItem {
   const runs: InlineContent[] = [];
   const children: MarkdownList[] = [];
@@ -413,6 +468,13 @@ function parseElement(node: GenericNode): SlideElement | null {
     return {
       type: "math",
       latex: node.value ?? "",
+    };
+  }
+
+  if (node.type === "table") {
+    return {
+      type: "table",
+      table: parseMarkdownTable(node),
     };
   }
 
