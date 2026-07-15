@@ -251,7 +251,7 @@ export function SettingsDialog({
             初期設定に戻す
           </button>
           <button type="button" className="primary-button" onClick={onClose}>
-            設定を閉じる
+              保存する
           </button>
         </footer>
       </div>

@@ -6,9 +6,9 @@ import type { SlideStyle } from "../utils/presentationApp";
 import { PresentationModeLauncher } from "./PresentationMode";
 import {
   DownloadIcon,
-  FolderOpenIcon,
+  // FolderOpenIcon,
   LoadingIcon,
-  MarkdownSaveIcon,
+  // MarkdownSaveIcon,
   SettingsIcon,
 } from "./ui/Icons";
 
@@ -31,15 +31,15 @@ type AppHeaderProps = {
 };
 
 export function AppHeader({
-  fileInputRef,
+  // fileInputRef,
   slides,
   settings,
   slideStyle,
-  markdownIsEmpty,
+  // markdownIsEmpty,
   isExporting,
   canExport,
-  onFileChange,
-  onSaveMarkdown,
+  // onFileChange,
+  // onSaveMarkdown,
   onOpenSettings,
   onExport,
 }: AppHeaderProps) {
