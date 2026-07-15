@@ -31,7 +31,6 @@ export function MarkdownEditorPanel({
       <div className="section-header">
         <div>
           <h2>Markdown</h2>
-          <p>「# 見出し」で新しいスライドを作成します。</p>
         </div>
 
         <label className="file-name-field">

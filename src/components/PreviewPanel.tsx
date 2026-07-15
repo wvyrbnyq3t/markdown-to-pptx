@@ -34,7 +34,7 @@ export function PreviewPanel({
     >
       <div className="section-header">
         <div>
-          <h2>PPTXプレビュー</h2>
+          <h2>プレビュー</h2>
         </div>
       </div>
 
@@ -80,11 +80,7 @@ type SlidePreviewItemProps = {
   children: ReactNode;
 };
 
-function SlidePreviewItem({
-  label,
-  style,
-  children,
-}: SlidePreviewItemProps) {
+function SlidePreviewItem({ label, style, children }: SlidePreviewItemProps) {
   return (
     <div className="slide-preview-item">
       <div className="slide-information">

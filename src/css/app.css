@@ -380,7 +380,6 @@ button:disabled {
   border: 1px solid var(--color-border-strong);
   border-radius: 7px;
   background: var(--color-surface);
-  box-shadow: var(--shadow-slide);
 }
 
 .slide-canvas {
