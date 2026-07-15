@@ -307,7 +307,6 @@
 
 .preview-code-wrapper {
   overflow: hidden;
-  border: 2px solid var(--slide-accent-color);
   border-radius: var(--radius-lg);
   background: var(--color-code-background);
 }

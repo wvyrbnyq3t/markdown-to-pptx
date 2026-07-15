@@ -592,7 +592,6 @@ button:disabled {
   overflow: hidden;
   aspect-ratio: 1920 / 1080;
   border: 1px solid var(--color-border-strong);
-  border-radius: 7px;
   background: var(--color-surface);
 }
 
