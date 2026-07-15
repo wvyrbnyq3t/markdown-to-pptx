@@ -1,9 +1,4 @@
-import {
-  useMemo,
-  useRef,
-  useState,
-  type ChangeEvent,
-} from "react";
+import { useEffect, useMemo, useRef, useState, type ChangeEvent } from "react";
 
 import { INITIAL_MARKDOWN } from "../constants/initialMarkdown";
 import { parseMarkdown } from "../features/markdown/parseMarkdown";
@@ -19,6 +14,11 @@ import {
   saveMarkdown,
 } from "../utils/presentationApp";
 
+import {
+  loadPresentationSettings,
+  savePresentationSettings,
+} from "../utils/presentationStorage";
+
 export type MobileView = "editor" | "preview";
 
 export type UpdateSetting = <K extends keyof PresentationSettings>(
@@ -31,13 +31,17 @@ export function usePresentationEditor() {
 
   const [markdown, setMarkdown] = useState(INITIAL_MARKDOWN);
   const [fileName, setFileName] = useState("presentation");
-  const [settings, setSettings] = useState<PresentationSettings>({
-    ...DEFAULT_PRESENTATION_SETTINGS,
-  });
+  const [settings, setSettings] = useState<PresentationSettings>(() =>
+    loadPresentationSettings(),
+  );
   const [mobileView, setMobileView] = useState<MobileView>("editor");
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
   const [actionError, setActionError] = useState("");
+
+  useEffect(() => {
+    savePresentationSettings(settings);
+  }, [settings]);
 
   const parseResult = useMemo(() => {
     try {
@@ -57,8 +61,7 @@ export function usePresentationEditor() {
   }, [markdown]);
 
   const slides = parseResult.slides;
-  const totalSlideCount =
-    slides.length + (settings.includeTitleSlide ? 1 : 0);
+  const totalSlideCount = slides.length + (settings.includeTitleSlide ? 1 : 0);
   const slideStyle = useMemo(() => createSlideStyle(settings), [settings]);
   const errorMessage = parseResult.error || actionError;
 
@@ -131,7 +134,11 @@ export function usePresentationEditor() {
   };
 
   const resetSettings = (): void => {
-    setSettings({ ...DEFAULT_PRESENTATION_SETTINGS });
+    const defaultSettings: PresentationSettings = {
+      ...DEFAULT_PRESENTATION_SETTINGS,
+    };
+
+    setSettings(defaultSettings);
   };
 
   return {
