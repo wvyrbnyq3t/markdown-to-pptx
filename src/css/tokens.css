@@ -121,4 +121,7 @@
 
   /* Slide renderer */
   --slide-link-color: var(--color-link);
+
+  /* Grid */
+  --slide-grid-gap: 48px;
 }

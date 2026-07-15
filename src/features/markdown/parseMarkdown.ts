@@ -15,6 +15,7 @@ import type {
   QuoteLine,
   SlideData,
   SlideElement,
+  SlideGridColumns,
 } from "../../types/slide";
 
 type GenericNode = {
@@ -35,8 +36,39 @@ function createSlide(title = ""): SlideData {
   return {
     id: uuidv4(),
     title,
+    gridColumns: 1,
     elements: [],
   };
+}
+
+function parseGridColumnsDirective(
+  value: string | undefined,
+): SlideGridColumns | null {
+  if (!value) {
+    return null;
+  }
+
+  const match = value.trim().match(/^<!--\s*grid\s*:\s*([123])\s*-->$/i);
+
+  if (!match) {
+    return null;
+  }
+
+  const columns = Number(match[1]);
+
+  if (columns === 1 || columns === 2 || columns === 3) {
+    return columns;
+  }
+
+  return null;
+}
+
+function isColumnBreakDirective(value: string | undefined): boolean {
+  if (!value) {
+    return false;
+  }
+
+  return /^<!--\s*column\s*-->$/i.test(value.trim());
 }
 
 function isContentHeadingLevel(
@@ -409,6 +441,31 @@ export function parseMarkdown(markdown: string): SlideData[] {
 
     if (!currentSlide) {
       currentSlide = createSlide();
+    }
+
+    /*
+     * <!-- grid: 2 -->
+     * <!-- grid: 3 -->
+     */
+    if (node.type === "html") {
+      const gridColumns = parseGridColumnsDirective(node.value);
+
+      if (gridColumns !== null) {
+        currentSlide.gridColumns = gridColumns;
+
+        continue;
+      }
+
+      /*
+       * <!-- column -->
+       */
+      if (isColumnBreakDirective(node.value)) {
+        currentSlide.elements.push({
+          type: "columnBreak",
+        });
+
+        continue;
+      }
     }
 
     const element = parseElement(node);

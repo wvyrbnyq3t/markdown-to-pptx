@@ -78,12 +78,11 @@
  * コンテンツ要素同士は基本8px。
  */
 .slide-body {
-  display: flex;
+  display: grid;
   min-height: 0;
-  margin-top: var(--slide-margin);
+  margin: var(--slide-margin) 0 0;
   flex: 1;
-  flex-direction: column;
-  gap: var(--slide-content-gap);
+  gap: var(--slide-grid-gap);
   overflow: hidden;
   color: var(--slide-text-color);
   font-size: var(--slide-body-font-size);
@@ -94,7 +93,7 @@
  * ブラウザ既定のmarginをすべて削除し、
  * gapだけで要素間隔を管理する。
  */
-.slide-body > * {
+.slide-grid-column > * {
   flex-shrink: 0;
   margin: 0;
 }
@@ -360,4 +359,38 @@
   line-height: 1;
   text-align: right;
   opacity: 0.7;
+}
+
+/* ========================================
+   スライドグリッド
+======================================== */
+
+.slide-grid {
+  grid-template-rows: minmax(0, 1fr);
+}
+
+.slide-grid-1 {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.slide-grid-2 {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.slide-grid-3 {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.slide-grid-column {
+  display: flex;
+  min-width: 0;
+  min-height: 0;
+  flex-direction: column;
+  gap: var(--slide-content-gap);
+  overflow: hidden;
+}
+
+.slide-grid-column > * {
+  flex-shrink: 0;
+  margin: 0;
 }

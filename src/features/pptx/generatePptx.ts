@@ -16,6 +16,8 @@ import {
   SLIDE_WIDTH_PX,
 } from "../../utils/slideUnits";
 
+import { splitSlideElementsIntoColumns } from "../../utils/slideGrid";
+
 import { renderMathSvg } from "../math/renderMath";
 
 const SLIDE_LAYOUT_NAME = "CUSTOM_1920_1080";
@@ -24,6 +26,7 @@ const BODY_LINE_HEIGHT = 1.7;
 const TEXT_HEIGHT_SAFETY_RATIO = 1.1;
 const CONTENT_HEADING_TOP_GAP_PX = 48;
 const QUOTE_LINE_HEIGHT = 1.5;
+const GRID_GAP_PX = 48;
 
 /**
  * PowerPoint上のフォントメトリクスを考慮し、
@@ -456,9 +459,9 @@ export async function generatePptx(
     addTitleSlide(pptx, settings, primaryColor, secondaryColor, textColor);
   }
 
-  const marginPx = settings.marginPx;
+  const slideMarginPx = settings.marginPx;
 
-  const contentWidthPx = SLIDE_WIDTH_PX - marginPx * 2;
+  const slideContentWidthPx = SLIDE_WIDTH_PX - slideMarginPx * 2;
 
   for (const [slideIndex, slideData] of slides.entries()) {
     const slide = pptx.addSlide();
@@ -474,31 +477,20 @@ export async function generatePptx(
     const titleHeightPx = Math.max(48, settings.titleFontSizePx + 12);
 
     slide.addText(slideData.title || "無題のスライド", {
-      x: pxToInches(marginPx),
-      y: pxToInches(marginPx),
+      x: pxToInches(slideMarginPx),
 
-      w: pxToInches(contentWidthPx),
+      y: pxToInches(slideMarginPx),
 
-      h: pxToInches(titleHeightPx),
+      w: pxToInches(slideContentWidthPx),
 
-      fontFace: "Yu Gothic",
-
-      fontSize: pxToPoints(settings.titleFontSizePx),
-
-      bold: true,
-      color: primaryColor,
-
-      lineSpacingMultiple: 1,
-
-      margin: 0,
-      fit: "shrink",
+      // 以下は既存設定
     });
 
     /*
      * タイトルの下には、外周余白と
      * 同じ大きさの余白を設ける。
      */
-    let currentYPx = marginPx + titleHeightPx + marginPx;
+    const contentStartYPx = slideMarginPx + titleHeightPx + slideMarginPx;
 
     const pageNumberHeightPx = Math.max(
       28,
@@ -507,596 +499,68 @@ export async function generatePptx(
 
     const bottomLimitPx =
       SLIDE_HEIGHT_PX -
-      marginPx -
-      (settings.showPageNumber ? pageNumberHeightPx + marginPx : 0);
+      slideMarginPx -
+      (settings.showPageNumber ? pageNumberHeightPx + slideMarginPx : 0);
 
-    let hasPlacedContent = false;
+    const gridColumns = slideData.gridColumns ?? 1;
 
-    for (const element of slideData.elements) {
-      const topGapPx = getElementTopGapPx(
-        element,
-        hasPlacedContent,
-        settings.contentGapPx,
-      );
+    const columns = splitSlideElementsIntoColumns(
+      slideData.elements,
+      gridColumns,
+    );
 
-      const elementYPx = currentYPx + topGapPx;
+    const totalGridGapPx = GRID_GAP_PX * (gridColumns - 1);
 
-      const remainingHeightPx = bottomLimitPx - elementYPx;
+    const columnWidthPx = (slideContentWidthPx - totalGridGapPx) / gridColumns;
 
-      if (remainingHeightPx < 40) {
-        break;
-      }
+    for (const [columnIndex, columnElements] of columns.entries()) {
+      /*
+       * 既存のswitch内で使われている
+       * marginPxとcontentWidthPxを、
+       * この列専用の値として定義する。
+       */
+      const marginPx =
+        slideMarginPx + columnIndex * (columnWidthPx + GRID_GAP_PX);
 
-      let placedHeightPx = 0;
+      const contentWidthPx = columnWidthPx;
 
-      switch (element.type) {
-        case "subtitle": {
-          const estimatedHeightPx = Math.max(
-            settings.subtitleFontSizePx + 8,
+      let currentYPx = contentStartYPx;
 
-            estimateTextHeightPx(
-              element.text,
-              contentWidthPx,
-              settings.subtitleFontSizePx,
-              1,
-            ),
-          );
+      let hasPlacedContent = false;
 
-          const heightPx = Math.min(estimatedHeightPx, remainingHeightPx);
+      for (const element of columnElements) {
+        const topGapPx = getElementTopGapPx(
+          element,
+          hasPlacedContent,
+          settings.contentGapPx,
+        );
 
-          slide.addText(element.text, {
-            x: pxToInches(marginPx),
+        const elementYPx = currentYPx + topGapPx;
 
-            y: pxToInches(elementYPx),
+        const remainingHeightPx = bottomLimitPx - elementYPx;
 
-            w: pxToInches(contentWidthPx),
-
-            h: pxToInches(heightPx),
-
-            fontFace: "Yu Gothic",
-
-            fontSize: pxToPoints(settings.subtitleFontSizePx),
-
-            bold: true,
-            color: primaryColor,
-
-            lineSpacingMultiple: 1,
-
-            margin: 0,
-            valign: "top",
-            fit: "shrink",
-          });
-
-          placedHeightPx = heightPx;
-
+        if (remainingHeightPx < 40) {
           break;
         }
 
-        case "contentHeading": {
-          const fontSizePx = settings.bodyFontSizePx * 1.25;
-
-          const estimatedHeightPx = Math.max(
-            fontSizePx,
-
-            estimateTextHeightPx(element.text, contentWidthPx, fontSizePx, 1),
-          );
-
-          const requiredHeightPx = addTextHeightSafetyPx(
-            estimatedHeightPx,
-            fontSizePx,
-          );
-
-          const textBoxHeight = resolveTextBoxHeight(
-            requiredHeightPx,
-            remainingHeightPx,
-          );
-
-          slide.addText(element.text, {
-            x: pxToInches(marginPx),
-
-            y: pxToInches(elementYPx),
-
-            w: pxToInches(contentWidthPx),
-
-            h: pxToInches(textBoxHeight.heightPx),
-
-            fontFace: "Yu Gothic",
-
-            fontSize: pxToPoints(fontSizePx),
-
-            bold: true,
-            color: textColor,
-
-            lineSpacingMultiple: 1,
-
-            margin: 0,
-            valign: "top",
-
-            fit: textBoxHeight.fit,
-          });
-
-          placedHeightPx = textBoxHeight.heightPx;
-
-          break;
-        }
-
-        case "paragraph": {
-          const plainText = inlineRunsToPlainText(element.runs);
-
-          const estimatedHeightPx = Math.max(
-            settings.bodyFontSizePx * BODY_LINE_HEIGHT,
-
-            estimateTextHeightPx(
-              plainText,
-              contentWidthPx,
-              settings.bodyFontSizePx,
-              BODY_LINE_HEIGHT,
-            ),
-          );
-
-          const requiredHeightPx = addTextHeightSafetyPx(
-            estimatedHeightPx,
-            settings.bodyFontSizePx,
-          );
-
-          const textBoxHeight = resolveTextBoxHeight(
-            requiredHeightPx,
-            remainingHeightPx,
-          );
-
-          slide.addText(toPptxTextRuns(element.runs, textColor, accentColor), {
-            x: pxToInches(marginPx),
-
-            y: pxToInches(elementYPx),
-
-            w: pxToInches(contentWidthPx),
-
-            h: pxToInches(textBoxHeight.heightPx),
-
-            fontFace: "Yu Gothic",
-
-            fontSize: pxToPoints(settings.bodyFontSizePx),
-
-            color: textColor,
-
-            lineSpacingMultiple: BODY_LINE_HEIGHT,
-
-            margin: 0,
-            valign: "top",
-
-            fit: textBoxHeight.fit,
-          });
-
-          placedHeightPx = textBoxHeight.heightPx;
-
-          break;
-        }
-
-        case "list": {
-          const flattenedItems = flattenMarkdownList(element.list);
-
-          if (flattenedItems.length === 0) {
-            placedHeightPx = 0;
-            break;
-          }
-
-          const itemGapPx = 8;
-          const depthIndentPx = 48;
-          const markerAreaPx = 48;
-
-          let estimatedContentHeightPx = 0;
-
-          flattenedItems.forEach((item, itemIndex) => {
-            const displayDepth = Math.min(item.depth, 5);
-
-            const indentPx = displayDepth * depthIndentPx;
-
-            /*
-             * リスト記号・番号と
-             * ぶら下げインデントの領域を除いた
-             * 実際の本文幅で高さを見積もる。
-             */
-            const estimatedTextWidthPx = Math.max(
-              160,
-              contentWidthPx - indentPx - markerAreaPx,
-            );
-
-            const plainText = inlineRunsToPlainText(item.runs);
-
-            const estimatedItemHeightPx = estimateTextHeightPx(
-              plainText,
-              estimatedTextWidthPx,
-              settings.bodyFontSizePx,
-              BODY_LINE_HEIGHT,
-            );
-
-            const minimumItemHeightPx =
-              settings.bodyFontSizePx * BODY_LINE_HEIGHT;
-
-            estimatedContentHeightPx += Math.max(
-              estimatedItemHeightPx,
-              minimumItemHeightPx,
-            );
-
-            if (itemIndex < flattenedItems.length - 1) {
-              estimatedContentHeightPx += itemGapPx;
-            }
-          });
-
-          /*
-           * PowerPoint上でテキストが
-           * 下にはみ出さないよう安全余白を追加する。
-           */
-          const requiredHeightPx = addTextHeightSafetyPx(
-            estimatedContentHeightPx,
-            settings.bodyFontSizePx,
-          );
-
-          const textBoxHeight = resolveTextBoxHeight(
-            requiredHeightPx,
-            remainingHeightPx,
-          );
-
-          const listRuns = createNativeListTextRuns(
-            flattenedItems,
-            textColor,
-            accentColor,
-          );
-
-          slide.addText(listRuns, {
-            x: pxToInches(marginPx),
-
-            y: pxToInches(elementYPx),
-
-            w: pxToInches(contentWidthPx),
-
-            h: pxToInches(textBoxHeight.heightPx),
-
-            fontFace: "Yu Gothic",
-
-            fontSize: pxToPoints(settings.bodyFontSizePx),
-
-            color: textColor,
-
-            lineSpacingMultiple: BODY_LINE_HEIGHT,
-
-            margin: 0,
-
-            valign: "top",
-
-            /*
-             * 通常はテキスト量に合わせて
-             * テキストボックスを拡張する。
-             *
-             * スライドの残り領域を超える場合のみ
-             * shrinkへ切り替える。
-             */
-            fit: textBoxHeight.fit,
-
-            breakLine: false,
-          });
-
-          placedHeightPx = textBoxHeight.heightPx;
-
-          break;
-        }
-
-        case "quote": {
-          const quoteGapPx = 8;
-
-          /*
-           * CSSと同じ余白
-           */
-          const quotePaddingTopPx = 16;
-          const quotePaddingRightPx = 16;
-          const quotePaddingBottomPx = 16;
-          const quotePaddingLeftPx = 32;
-
-          const quoteBarWidthPx = 4;
-          const quoteDepthIndentPx = 28;
-
-          /*
-           * CSS:
-           * background: rgb(15 23 42 / 4%);
-           *
-           * PPTXでは#0F172Aを96%透明にして、
-           * 4%の濃さで表示する。
-           */
-          const quoteBackgroundColor = "0F172A";
-
-          const normalizedAccentColor = accentColor.replace(/^#/, "");
-
-          let currentQuoteYPx = elementYPx;
-
-          let totalHeightPx = 0;
-
-          for (const line of element.lines) {
-            /*
-             * デザイン上は二重引用まで表示する。
-             */
-            const depth = Math.min(Math.max(line.depth, 1), 2);
-
-            /*
-             * depth 1:
-             *   marginPxから開始
-             *
-             * depth 2:
-             *   28px右へ移動
-             */
-            const quoteBoxIndentPx = (depth - 1) * quoteDepthIndentPx;
-
-            const quoteBoxXPx = marginPx + quoteBoxIndentPx;
-
-            const quoteBoxWidthPx = Math.max(
-              160,
-              contentWidthPx - quoteBoxIndentPx,
-            );
-
-            const quoteTextXPx = quoteBoxXPx + quotePaddingLeftPx;
-
-            const quoteTextWidthPx = Math.max(
-              120,
-              quoteBoxWidthPx - quotePaddingLeftPx - quotePaddingRightPx,
-            );
-
-            const plainText = inlineRunsToPlainText(line.runs);
-
-            const estimatedTextHeightPx = Math.max(
-              settings.bodyFontSizePx * QUOTE_LINE_HEIGHT,
+        let placedHeightPx = 0;
+
+        switch (element.type) {
+          case "subtitle": {
+            const estimatedHeightPx = Math.max(
+              settings.subtitleFontSizePx + 8,
 
               estimateTextHeightPx(
-                plainText,
-                quoteTextWidthPx,
-                settings.bodyFontSizePx,
-                QUOTE_LINE_HEIGHT,
+                element.text,
+                contentWidthPx,
+                settings.subtitleFontSizePx,
+                1,
               ),
             );
 
-            /*
-             * PowerPointのフォントメトリクスによる
-             * 高さ不足を防ぐため、少し余裕を持たせる。
-             */
-            const quoteTextHeightPx = Math.ceil(
-              estimatedTextHeightPx +
-                Math.max(4, settings.bodyFontSizePx * 0.2),
-            );
+            const heightPx = Math.min(estimatedHeightPx, remainingHeightPx);
 
-            const requiredQuoteBoxHeightPx =
-              quotePaddingTopPx + quoteTextHeightPx + quotePaddingBottomPx;
-
-            const availableHeightPx = Math.max(
-              1,
-              remainingHeightPx - totalHeightPx,
-            );
-
-            const quoteBoxHeightPx = Math.min(
-              requiredQuoteBoxHeightPx,
-              availableHeightPx,
-            );
-
-            /*
-             * 背景を最初に追加する。
-             *
-             * PptxGenJSでは後から追加した要素ほど
-             * 手前に表示されるため、
-             * 背景 → 引用線 → 本文の順に追加する。
-             */
-            slide.addShape(pptx.ShapeType.rect, {
-              x: pxToInches(quoteBoxXPx),
-
-              y: pxToInches(currentQuoteYPx),
-
-              w: pxToInches(quoteBoxWidthPx),
-
-              h: pxToInches(quoteBoxHeightPx),
-
-              fill: {
-                color: quoteBackgroundColor,
-
-                /*
-                 * 96%透明 = 4%表示
-                 */
-                transparency: 96,
-              },
-
-              line: {
-                color: quoteBackgroundColor,
-
-                transparency: 100,
-              },
-            });
-
-            /*
-             * 引用線を追加する。
-             *
-             * depth 1: 1本
-             * depth 2: 2本
-             */
-            for (let barIndex = 0; barIndex < depth; barIndex += 1) {
-              const barXPx = marginPx + barIndex * quoteDepthIndentPx;
-
-              const isInnerBar = barIndex === depth - 1;
-
-              slide.addShape(pptx.ShapeType.rect, {
-                x: pxToInches(barXPx),
-
-                y: pxToInches(currentQuoteYPx),
-
-                w: pxToInches(quoteBarWidthPx),
-
-                h: pxToInches(quoteBoxHeightPx),
-
-                fill: {
-                  color: normalizedAccentColor,
-
-                  /*
-                   * 外側の引用線は少し薄くする。
-                   */
-                  transparency: isInnerBar ? 0 : 55,
-                },
-
-                line: {
-                  color: normalizedAccentColor,
-
-                  transparency: 100,
-                },
-              });
-            }
-
-            /*
-             * 引用本文
-             */
-            const quoteInnerHeightPx = Math.max(
-              1,
-              quoteBoxHeightPx - quotePaddingTopPx - quotePaddingBottomPx,
-            );
-
-            const shouldShrinkText =
-              requiredQuoteBoxHeightPx > availableHeightPx;
-
-            slide.addText(toPptxTextRuns(line.runs, textColor, accentColor), {
-              x: pxToInches(quoteTextXPx),
-
-              y: pxToInches(currentQuoteYPx + quotePaddingTopPx),
-
-              w: pxToInches(quoteTextWidthPx),
-
-              h: pxToInches(quoteInnerHeightPx),
-
-              fontFace: "Yu Gothic",
-
-              fontSize: pxToPoints(settings.bodyFontSizePx),
-
-              color: textColor,
-
-              lineSpacingMultiple: QUOTE_LINE_HEIGHT,
-
-              margin: 0,
-
-              /*
-               * 内側領域の中央へ配置する。
-               */
-              valign: "middle",
-
-              /*
-               * resizeを使うとテキストボックス自体の
-               * 高さが変わり、中央位置がずれる。
-               *
-               * 高さが足りる場合は変更せず、
-               * 足りない場合だけ文字を縮小する。
-               */
-              fit: shouldShrinkText ? "shrink" : "none",
-            });
-
-            currentQuoteYPx += quoteBoxHeightPx + quoteGapPx;
-
-            totalHeightPx += quoteBoxHeightPx + quoteGapPx;
-
-            if (totalHeightPx >= remainingHeightPx) {
-              break;
-            }
-          }
-
-          placedHeightPx = Math.max(0, totalHeightPx - quoteGapPx);
-
-          break;
-        }
-
-        case "code": {
-          const lineCount = element.code.split("\n").length;
-
-          const codePaddingPx = 20;
-
-          const heightPx = Math.min(
-            Math.max(
-              100,
-
-              lineCount * settings.codeFontSizePx * 1.5 + codePaddingPx * 2,
-            ),
-
-            Math.min(420, remainingHeightPx),
-          );
-
-          slide.addText(element.code, {
-            x: pxToInches(marginPx),
-
-            y: pxToInches(elementYPx),
-
-            w: pxToInches(contentWidthPx),
-
-            h: pxToInches(heightPx),
-
-            fontFace: "Courier New",
-
-            fontSize: pxToPoints(settings.codeFontSizePx),
-
-            color: "F3F4F6",
-
-            fill: {
-              color: "111827",
-            },
-
-            line: {
-              color: accentColor,
-              width: pxToPoints(2),
-            },
-
-            lineSpacingMultiple: 1.5,
-
-            margin: pxToPoints(codePaddingPx),
-
-            valign: "top",
-            fit: "shrink",
-          });
-
-          placedHeightPx = heightPx;
-
-          break;
-        }
-
-        case "math": {
-          try {
-            const math = renderMathSvg(element.latex, true, settings.textColor);
-
-            let mathHeightPx = Math.max(90, settings.mathFontSizePx * 2.2);
-
-            let mathWidthPx = mathHeightPx * math.aspectRatio;
-
-            if (mathWidthPx > contentWidthPx) {
-              const scale = contentWidthPx / mathWidthPx;
-
-              mathWidthPx *= scale;
-              mathHeightPx *= scale;
-            }
-
-            if (mathHeightPx > remainingHeightPx) {
-              const scale = remainingHeightPx / mathHeightPx;
-
-              mathWidthPx *= scale;
-              mathHeightPx *= scale;
-            }
-
-            slide.addImage({
-              data: math.dataUri,
-
-              x: pxToInches(marginPx + (contentWidthPx - mathWidthPx) / 2),
-
-              y: pxToInches(elementYPx),
-
-              w: pxToInches(mathWidthPx),
-
-              h: pxToInches(mathHeightPx),
-            });
-
-            placedHeightPx = mathHeightPx;
-          } catch {
-            const heightPx = Math.min(
-              settings.mathFontSizePx * 2,
-
-              remainingHeightPx,
-            );
-
-            slide.addText(element.latex, {
+            slide.addText(element.text, {
               x: pxToInches(marginPx),
 
               y: pxToInches(elementYPx),
@@ -1105,85 +569,640 @@ export async function generatePptx(
 
               h: pxToInches(heightPx),
 
-              fontFace: "Times New Roman",
+              fontFace: "Yu Gothic",
 
-              fontSize: pxToPoints(settings.mathFontSizePx),
+              fontSize: pxToPoints(settings.subtitleFontSizePx),
 
-              color: textColor,
+              bold: true,
+              color: primaryColor,
 
-              align: "center",
+              lineSpacingMultiple: 1,
 
               margin: 0,
+              valign: "top",
               fit: "shrink",
             });
 
             placedHeightPx = heightPx;
-          }
 
-          break;
-        }
-
-        case "image": {
-          /*
-           * PPTXへの直接挿入は
-           * Data URI形式の画像に対応する。
-           */
-          if (!element.src.startsWith("data:image/")) {
             break;
           }
 
-          const imageHeightPx = Math.min(500, remainingHeightPx);
+          case "contentHeading": {
+            const fontSizePx = settings.bodyFontSizePx * 1.25;
 
-          if (imageHeightPx < 80) {
+            const estimatedHeightPx = Math.max(
+              fontSizePx,
+
+              estimateTextHeightPx(element.text, contentWidthPx, fontSizePx, 1),
+            );
+
+            const requiredHeightPx = addTextHeightSafetyPx(
+              estimatedHeightPx,
+              fontSizePx,
+            );
+
+            const textBoxHeight = resolveTextBoxHeight(
+              requiredHeightPx,
+              remainingHeightPx,
+            );
+
+            slide.addText(element.text, {
+              x: pxToInches(marginPx),
+
+              y: pxToInches(elementYPx),
+
+              w: pxToInches(contentWidthPx),
+
+              h: pxToInches(textBoxHeight.heightPx),
+
+              fontFace: "Yu Gothic",
+
+              fontSize: pxToPoints(fontSizePx),
+
+              bold: true,
+              color: textColor,
+
+              lineSpacingMultiple: 1,
+
+              margin: 0,
+              valign: "top",
+
+              fit: textBoxHeight.fit,
+            });
+
+            placedHeightPx = textBoxHeight.heightPx;
+
             break;
           }
 
-          slide.addImage({
-            data: element.src,
+          case "paragraph": {
+            const plainText = inlineRunsToPlainText(element.runs);
 
-            x: pxToInches(marginPx),
+            const estimatedHeightPx = Math.max(
+              settings.bodyFontSizePx * BODY_LINE_HEIGHT,
 
-            y: pxToInches(elementYPx),
+              estimateTextHeightPx(
+                plainText,
+                contentWidthPx,
+                settings.bodyFontSizePx,
+                BODY_LINE_HEIGHT,
+              ),
+            );
 
-            w: pxToInches(contentWidthPx),
+            const requiredHeightPx = addTextHeightSafetyPx(
+              estimatedHeightPx,
+              settings.bodyFontSizePx,
+            );
 
-            h: pxToInches(imageHeightPx),
-          });
+            const textBoxHeight = resolveTextBoxHeight(
+              requiredHeightPx,
+              remainingHeightPx,
+            );
 
-          placedHeightPx = imageHeightPx;
+            slide.addText(
+              toPptxTextRuns(element.runs, textColor, accentColor),
+              {
+                x: pxToInches(marginPx),
 
-          break;
+                y: pxToInches(elementYPx),
+
+                w: pxToInches(contentWidthPx),
+
+                h: pxToInches(textBoxHeight.heightPx),
+
+                fontFace: "Yu Gothic",
+
+                fontSize: pxToPoints(settings.bodyFontSizePx),
+
+                color: textColor,
+
+                lineSpacingMultiple: BODY_LINE_HEIGHT,
+
+                margin: 0,
+                valign: "top",
+
+                fit: textBoxHeight.fit,
+              },
+            );
+
+            placedHeightPx = textBoxHeight.heightPx;
+
+            break;
+          }
+
+          case "list": {
+            const flattenedItems = flattenMarkdownList(element.list);
+
+            if (flattenedItems.length === 0) {
+              placedHeightPx = 0;
+              break;
+            }
+
+            const itemGapPx = 8;
+            const depthIndentPx = 48;
+            const markerAreaPx = 48;
+
+            let estimatedContentHeightPx = 0;
+
+            flattenedItems.forEach((item, itemIndex) => {
+              const displayDepth = Math.min(item.depth, 5);
+
+              const indentPx = displayDepth * depthIndentPx;
+
+              /*
+               * リスト記号・番号と
+               * ぶら下げインデントの領域を除いた
+               * 実際の本文幅で高さを見積もる。
+               */
+              const estimatedTextWidthPx = Math.max(
+                160,
+                contentWidthPx - indentPx - markerAreaPx,
+              );
+
+              const plainText = inlineRunsToPlainText(item.runs);
+
+              const estimatedItemHeightPx = estimateTextHeightPx(
+                plainText,
+                estimatedTextWidthPx,
+                settings.bodyFontSizePx,
+                BODY_LINE_HEIGHT,
+              );
+
+              const minimumItemHeightPx =
+                settings.bodyFontSizePx * BODY_LINE_HEIGHT;
+
+              estimatedContentHeightPx += Math.max(
+                estimatedItemHeightPx,
+                minimumItemHeightPx,
+              );
+
+              if (itemIndex < flattenedItems.length - 1) {
+                estimatedContentHeightPx += itemGapPx;
+              }
+            });
+
+            /*
+             * PowerPoint上でテキストが
+             * 下にはみ出さないよう安全余白を追加する。
+             */
+            const requiredHeightPx = addTextHeightSafetyPx(
+              estimatedContentHeightPx,
+              settings.bodyFontSizePx,
+            );
+
+            const textBoxHeight = resolveTextBoxHeight(
+              requiredHeightPx,
+              remainingHeightPx,
+            );
+
+            const listRuns = createNativeListTextRuns(
+              flattenedItems,
+              textColor,
+              accentColor,
+            );
+
+            slide.addText(listRuns, {
+              x: pxToInches(marginPx),
+
+              y: pxToInches(elementYPx),
+
+              w: pxToInches(contentWidthPx),
+
+              h: pxToInches(textBoxHeight.heightPx),
+
+              fontFace: "Yu Gothic",
+
+              fontSize: pxToPoints(settings.bodyFontSizePx),
+
+              color: textColor,
+
+              lineSpacingMultiple: BODY_LINE_HEIGHT,
+
+              margin: 0,
+
+              valign: "top",
+
+              /*
+               * 通常はテキスト量に合わせて
+               * テキストボックスを拡張する。
+               *
+               * スライドの残り領域を超える場合のみ
+               * shrinkへ切り替える。
+               */
+              fit: textBoxHeight.fit,
+
+              breakLine: false,
+            });
+
+            placedHeightPx = textBoxHeight.heightPx;
+
+            break;
+          }
+
+          case "quote": {
+            const quoteGapPx = 8;
+
+            /*
+             * CSSと同じ余白
+             */
+            const quotePaddingTopPx = 16;
+            const quotePaddingRightPx = 16;
+            const quotePaddingBottomPx = 16;
+            const quotePaddingLeftPx = 32;
+
+            const quoteBarWidthPx = 4;
+            const quoteDepthIndentPx = 28;
+
+            /*
+             * CSS:
+             * background: rgb(15 23 42 / 4%);
+             *
+             * PPTXでは#0F172Aを96%透明にして、
+             * 4%の濃さで表示する。
+             */
+            const quoteBackgroundColor = "0F172A";
+
+            const normalizedAccentColor = accentColor.replace(/^#/, "");
+
+            let currentQuoteYPx = elementYPx;
+
+            let totalHeightPx = 0;
+
+            for (const line of element.lines) {
+              /*
+               * デザイン上は二重引用まで表示する。
+               */
+              const depth = Math.min(Math.max(line.depth, 1), 2);
+
+              /*
+               * depth 1:
+               *   marginPxから開始
+               *
+               * depth 2:
+               *   28px右へ移動
+               */
+              const quoteBoxIndentPx = (depth - 1) * quoteDepthIndentPx;
+
+              const quoteBoxXPx = marginPx + quoteBoxIndentPx;
+
+              const quoteBoxWidthPx = Math.max(
+                160,
+                contentWidthPx - quoteBoxIndentPx,
+              );
+
+              const quoteTextXPx = quoteBoxXPx + quotePaddingLeftPx;
+
+              const quoteTextWidthPx = Math.max(
+                120,
+                quoteBoxWidthPx - quotePaddingLeftPx - quotePaddingRightPx,
+              );
+
+              const plainText = inlineRunsToPlainText(line.runs);
+
+              const estimatedTextHeightPx = Math.max(
+                settings.bodyFontSizePx * QUOTE_LINE_HEIGHT,
+
+                estimateTextHeightPx(
+                  plainText,
+                  quoteTextWidthPx,
+                  settings.bodyFontSizePx,
+                  QUOTE_LINE_HEIGHT,
+                ),
+              );
+
+              /*
+               * PowerPointのフォントメトリクスによる
+               * 高さ不足を防ぐため、少し余裕を持たせる。
+               */
+              const quoteTextHeightPx = Math.ceil(
+                estimatedTextHeightPx +
+                  Math.max(4, settings.bodyFontSizePx * 0.2),
+              );
+
+              const requiredQuoteBoxHeightPx =
+                quotePaddingTopPx + quoteTextHeightPx + quotePaddingBottomPx;
+
+              const availableHeightPx = Math.max(
+                1,
+                remainingHeightPx - totalHeightPx,
+              );
+
+              const quoteBoxHeightPx = Math.min(
+                requiredQuoteBoxHeightPx,
+                availableHeightPx,
+              );
+
+              /*
+               * 背景を最初に追加する。
+               *
+               * PptxGenJSでは後から追加した要素ほど
+               * 手前に表示されるため、
+               * 背景 → 引用線 → 本文の順に追加する。
+               */
+              slide.addShape(pptx.ShapeType.rect, {
+                x: pxToInches(quoteBoxXPx),
+
+                y: pxToInches(currentQuoteYPx),
+
+                w: pxToInches(quoteBoxWidthPx),
+
+                h: pxToInches(quoteBoxHeightPx),
+
+                fill: {
+                  color: quoteBackgroundColor,
+
+                  /*
+                   * 96%透明 = 4%表示
+                   */
+                  transparency: 96,
+                },
+
+                line: {
+                  color: quoteBackgroundColor,
+
+                  transparency: 100,
+                },
+              });
+
+              /*
+               * 引用線を追加する。
+               *
+               * depth 1: 1本
+               * depth 2: 2本
+               */
+              for (let barIndex = 0; barIndex < depth; barIndex += 1) {
+                const barXPx = marginPx + barIndex * quoteDepthIndentPx;
+
+                const isInnerBar = barIndex === depth - 1;
+
+                slide.addShape(pptx.ShapeType.rect, {
+                  x: pxToInches(barXPx),
+
+                  y: pxToInches(currentQuoteYPx),
+
+                  w: pxToInches(quoteBarWidthPx),
+
+                  h: pxToInches(quoteBoxHeightPx),
+
+                  fill: {
+                    color: normalizedAccentColor,
+
+                    /*
+                     * 外側の引用線は少し薄くする。
+                     */
+                    transparency: isInnerBar ? 0 : 55,
+                  },
+
+                  line: {
+                    color: normalizedAccentColor,
+
+                    transparency: 100,
+                  },
+                });
+              }
+
+              /*
+               * 引用本文
+               */
+              const quoteInnerHeightPx = Math.max(
+                1,
+                quoteBoxHeightPx - quotePaddingTopPx - quotePaddingBottomPx,
+              );
+
+              const shouldShrinkText =
+                requiredQuoteBoxHeightPx > availableHeightPx;
+
+              slide.addText(toPptxTextRuns(line.runs, textColor, accentColor), {
+                x: pxToInches(quoteTextXPx),
+
+                y: pxToInches(currentQuoteYPx + quotePaddingTopPx),
+
+                w: pxToInches(quoteTextWidthPx),
+
+                h: pxToInches(quoteInnerHeightPx),
+
+                fontFace: "Yu Gothic",
+
+                fontSize: pxToPoints(settings.bodyFontSizePx),
+
+                color: textColor,
+
+                lineSpacingMultiple: QUOTE_LINE_HEIGHT,
+
+                margin: 0,
+
+                /*
+                 * 内側領域の中央へ配置する。
+                 */
+                valign: "middle",
+
+                /*
+                 * resizeを使うとテキストボックス自体の
+                 * 高さが変わり、中央位置がずれる。
+                 *
+                 * 高さが足りる場合は変更せず、
+                 * 足りない場合だけ文字を縮小する。
+                 */
+                fit: shouldShrinkText ? "shrink" : "none",
+              });
+
+              currentQuoteYPx += quoteBoxHeightPx + quoteGapPx;
+
+              totalHeightPx += quoteBoxHeightPx + quoteGapPx;
+
+              if (totalHeightPx >= remainingHeightPx) {
+                break;
+              }
+            }
+
+            placedHeightPx = Math.max(0, totalHeightPx - quoteGapPx);
+
+            break;
+          }
+
+          case "code": {
+            const lineCount = element.code.split("\n").length;
+
+            const codePaddingPx = 20;
+
+            const heightPx = Math.min(
+              Math.max(
+                100,
+
+                lineCount * settings.codeFontSizePx * 1.5 + codePaddingPx * 2,
+              ),
+
+              Math.min(420, remainingHeightPx),
+            );
+
+            slide.addText(element.code, {
+              x: pxToInches(marginPx),
+
+              y: pxToInches(elementYPx),
+
+              w: pxToInches(contentWidthPx),
+
+              h: pxToInches(heightPx),
+
+              fontFace: "Courier New",
+
+              fontSize: pxToPoints(settings.codeFontSizePx),
+
+              color: "F3F4F6",
+
+              fill: {
+                color: "111827",
+              },
+
+              line: {
+                color: accentColor,
+                width: pxToPoints(2),
+              },
+
+              lineSpacingMultiple: 1.5,
+
+              margin: pxToPoints(codePaddingPx),
+
+              valign: "top",
+              fit: "shrink",
+            });
+
+            placedHeightPx = heightPx;
+
+            break;
+          }
+
+          case "math": {
+            try {
+              const math = renderMathSvg(
+                element.latex,
+                true,
+                settings.textColor,
+              );
+
+              let mathHeightPx = Math.max(90, settings.mathFontSizePx * 2.2);
+
+              let mathWidthPx = mathHeightPx * math.aspectRatio;
+
+              if (mathWidthPx > contentWidthPx) {
+                const scale = contentWidthPx / mathWidthPx;
+
+                mathWidthPx *= scale;
+                mathHeightPx *= scale;
+              }
+
+              if (mathHeightPx > remainingHeightPx) {
+                const scale = remainingHeightPx / mathHeightPx;
+
+                mathWidthPx *= scale;
+                mathHeightPx *= scale;
+              }
+
+              slide.addImage({
+                data: math.dataUri,
+
+                x: pxToInches(marginPx + (contentWidthPx - mathWidthPx) / 2),
+
+                y: pxToInches(elementYPx),
+
+                w: pxToInches(mathWidthPx),
+
+                h: pxToInches(mathHeightPx),
+              });
+
+              placedHeightPx = mathHeightPx;
+            } catch {
+              const heightPx = Math.min(
+                settings.mathFontSizePx * 2,
+
+                remainingHeightPx,
+              );
+
+              slide.addText(element.latex, {
+                x: pxToInches(marginPx),
+
+                y: pxToInches(elementYPx),
+
+                w: pxToInches(contentWidthPx),
+
+                h: pxToInches(heightPx),
+
+                fontFace: "Times New Roman",
+
+                fontSize: pxToPoints(settings.mathFontSizePx),
+
+                color: textColor,
+
+                align: "center",
+
+                margin: 0,
+                fit: "shrink",
+              });
+
+              placedHeightPx = heightPx;
+            }
+
+            break;
+          }
+
+          case "image": {
+            /*
+             * PPTXへの直接挿入は
+             * Data URI形式の画像に対応する。
+             */
+            if (!element.src.startsWith("data:image/")) {
+              break;
+            }
+
+            const imageHeightPx = Math.min(500, remainingHeightPx);
+
+            if (imageHeightPx < 80) {
+              break;
+            }
+
+            slide.addImage({
+              data: element.src,
+
+              x: pxToInches(marginPx),
+
+              y: pxToInches(elementYPx),
+
+              w: pxToInches(contentWidthPx),
+
+              h: pxToInches(imageHeightPx),
+            });
+
+            placedHeightPx = imageHeightPx;
+
+            break;
+          }
         }
-      }
 
-      if (placedHeightPx > 0) {
-        currentYPx = elementYPx + placedHeightPx;
+        if (placedHeightPx > 0) {
+          currentYPx = elementYPx + placedHeightPx;
 
-        hasPlacedContent = true;
+          hasPlacedContent = true;
+        }
       }
     }
 
     if (settings.showPageNumber) {
       const pageNumberWidthPx = Math.max(80, settings.pageNumberFontSizePx * 4);
-
       slide.addText(`${slideIndex + 1}`, {
-        x: pxToInches(SLIDE_WIDTH_PX - marginPx - pageNumberWidthPx),
-
-        y: pxToInches(SLIDE_HEIGHT_PX - marginPx - pageNumberHeightPx),
-
+        x: pxToInches(SLIDE_WIDTH_PX - slideMarginPx - pageNumberWidthPx),
+        y: pxToInches(SLIDE_HEIGHT_PX - slideMarginPx - pageNumberHeightPx),
         w: pxToInches(pageNumberWidthPx),
-
         h: pxToInches(pageNumberHeightPx),
 
         fontFace: "Yu Gothic",
-
         fontSize: pxToPoints(settings.pageNumberFontSizePx),
 
         color: textColor,
+
         transparency: 30,
 
         align: "right",
-
         margin: 0,
       });
     }

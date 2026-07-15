@@ -21,19 +21,15 @@ export type InlineContent = (
 export type ContentHeadingLevel = 3 | 4 | 5 | 6;
 
 /**
- * 1つのリスト項目。
- *
- * childrenには、この項目の下にある
- * ネストされたリストが入る。
+ * スライドの横方向の分割数。
  */
+export type SlideGridColumns = 1 | 2 | 3;
+
 export type MarkdownListItem = {
   runs: InlineContent[];
   children: MarkdownList[];
 };
 
-/**
- * 箇条書き・番号付きリストの共通構造。
- */
 export type MarkdownList = {
   ordered: boolean;
   start: number;
@@ -80,10 +76,23 @@ export type SlideElement =
   | {
       type: "math";
       latex: string;
+    }
+  | {
+      /**
+       * 次のグリッド列へ移動する。
+       * 画面やPPTXには直接表示しない。
+       */
+      type: "columnBreak";
     };
 
 export type SlideData = {
   id: string;
   title: string;
+
+  /**
+   * 1列、2列、3列のいずれか。
+   */
+  gridColumns: SlideGridColumns;
+
   elements: SlideElement[];
 };
