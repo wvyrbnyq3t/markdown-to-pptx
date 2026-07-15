@@ -7,11 +7,7 @@ import {
 
 export type SlideStyle = CSSProperties & Record<`--${string}`, string>;
 
-export function clamp(
-  value: number,
-  minimum: number,
-  maximum: number,
-): number {
+export function clamp(value: number, minimum: number, maximum: number): number {
   return Math.min(Math.max(value, minimum), maximum);
 }
 
@@ -38,9 +34,7 @@ export function normalizeFileName(fileName: string): string {
   return normalized || "presentation";
 }
 
-export function createSlideStyle(
-  settings: PresentationSettings,
-): SlideStyle {
+export function createSlideStyle(settings: PresentationSettings): SlideStyle {
   const primaryColor = normalizeHexColor(
     settings.primaryColor,
     DEFAULT_PRESENTATION_SETTINGS.primaryColor,
@@ -106,11 +100,7 @@ export function normalizePresentationSettings(
     codeFontSizePx: clamp(settings.codeFontSizePx, 14, 56),
     mathFontSizePx: clamp(settings.mathFontSizePx, 20, 100),
     pageNumberFontSizePx: clamp(settings.pageNumberFontSizePx, 12, 48),
-    titlePageTitleFontSizePx: clamp(
-      settings.titlePageTitleFontSizePx,
-      40,
-      180,
-    ),
+    titlePageTitleFontSizePx: clamp(settings.titlePageTitleFontSizePx, 40, 180),
     titlePageSubtitleFontSizePx: clamp(
       settings.titlePageSubtitleFontSizePx,
       18,
@@ -124,8 +114,10 @@ export function normalizePresentationSettings(
 
 export function saveMarkdown(markdown: string, fileName: string): void {
   const baseFileName =
-    fileName.trim().replace(/\.pptx$/i, "").replace(/\.md$/i, "") ||
-    "presentation";
+    fileName
+      .trim()
+      .replace(/\.pptx$/i, "")
+      .replace(/\.md$/i, "") || "presentation";
 
   const blob = new Blob([markdown], {
     type: "text/markdown;charset=utf-8",

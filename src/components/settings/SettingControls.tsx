@@ -41,9 +41,7 @@ export function NumberSetting({
   };
 
   return (
-    <label
-      className={`number-setting${disabled ? " setting-disabled" : ""}`}
-    >
+    <label className={`number-setting${disabled ? " setting-disabled" : ""}`}>
       <span className="setting-label">{label}</span>
       <span className="number-input-wrapper">
         <input
@@ -143,57 +141,88 @@ export function ColorSetting({
   }, [value]);
 
   const currentValidColor = normalizeHexColor(value, fallback);
+
   const colorPickerValue = /^#[0-9a-fA-F]{6}$/.test(draftColor.trim())
     ? draftColor.trim().toUpperCase()
     : currentValidColor;
 
-  const commitColor = (): void => {
-    const trimmedColor = draftColor.trim();
+  /**
+   * #がない6桁のカラーコードには、
+   * 自動的に#を付けます。
+   */
+  const completeHexColor = (inputValue: string): string | null => {
+    const trimmedValue = inputValue.trim();
 
-    if (/^#?[0-9a-fA-F]{6}$/.test(trimmedColor)) {
-      const normalizedColor = normalizeHexColor(trimmedColor, currentValidColor);
-      setDraftColor(normalizedColor);
-      onChange(normalizedColor);
+    if (/^#[0-9a-fA-F]{6}$/.test(trimmedValue)) {
+      return trimmedValue.toUpperCase();
+    }
+
+    if (/^[0-9a-fA-F]{6}$/.test(trimmedValue)) {
+      return `#${trimmedValue.toUpperCase()}`;
+    }
+
+    return null;
+  };
+
+  const commitColor = (): void => {
+    const completedColor = completeHexColor(draftColor);
+
+    if (completedColor) {
+      setDraftColor(completedColor);
+      onChange(completedColor);
       return;
     }
 
+    /*
+     * 不正な値だった場合は、
+     * 直前の有効な色へ戻します。
+     */
     setDraftColor(currentValidColor);
+
     onChange(currentValidColor);
   };
 
   return (
-    <label className="color-setting">
+    <label className="color-settings">
       <span className="setting-label">{label}</span>
-      <span className="color-input-wrapper">
+
+      <div className="color-input-wrapper">
         <input
           type="color"
           value={colorPickerValue}
-          aria-label={`${label}を選択`}
           onChange={(event) => {
             const selectedColor = event.target.value.toUpperCase();
+
             setDraftColor(selectedColor);
+
             onChange(selectedColor);
           }}
         />
+
         <input
           type="text"
           value={draftColor}
-          autoComplete="off"
-          spellCheck={false}
-          aria-label={`${label}の16進数`}
           placeholder="#2563EB"
-          onChange={(event) => setDraftColor(event.target.value)}
+          spellCheck={false}
+          maxLength={7}
+          onChange={(event) => {
+            setDraftColor(event.target.value);
+          }}
           onBlur={commitColor}
           onKeyDown={(event) => {
             if (event.key === "Enter") {
               event.currentTarget.blur();
-            } else if (event.key === "Escape") {
+              return;
+            }
+
+            if (event.key === "Escape") {
               setDraftColor(currentValidColor);
+
               event.currentTarget.blur();
             }
           }}
         />
-      </span>
+      </div>
     </label>
   );
 }
