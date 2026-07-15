@@ -104,3 +104,16 @@ export function PlayIcon() {
     </BaseIcon>
   );
 }
+
+export function MenuIcon() {
+  return (
+    <BaseIcon
+      className="header-menu-icon"
+      aria-hidden="true"
+    >
+      <path d="M4 7h16" />
+      <path d="M4 12h16" />
+      <path d="M4 17h16" />
+    </BaseIcon>
+  );
+}

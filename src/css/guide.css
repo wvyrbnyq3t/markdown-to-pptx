@@ -92,6 +92,9 @@
 }
 
 .guide-start-button {
+  background-color: #fb5b00 !important;
+  font-size: clamp(16px, 4vw, 20px) !important;
+  padding: 1em 3em !important;
   margin-top: var(--space-8);
 }
 
@@ -181,6 +184,12 @@
   gap: var(--space-4);
   margin-bottom: var(--space-8);
 }
+.guide-step-card-header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  margin-bottom: var(--space-3);
+}
 
 .guide-step-card,
 .guide-syntax-card,
@@ -202,7 +211,6 @@
   height: 36px;
   align-items: center;
   justify-content: center;
-  margin-bottom: var(--space-5);
   border-radius: var(--radius-md);
   color: var(--color-text-inverse);
   background: var(--color-brand);
@@ -440,7 +448,7 @@
   }
 
   .guide-hero h1 {
-    font-size: 40px;
+    font-size: clamp(20px, 6vw, 40px);
   }
 
   .guide-hero p {

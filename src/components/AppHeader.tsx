@@ -1,4 +1,5 @@
 import type { ChangeEvent, RefObject } from "react";
+import { useState } from "react";
 
 import type { PresentationSettings } from "../types/presentation";
 import type { SlideData } from "../types/slide";
@@ -6,11 +7,14 @@ import type { SlideStyle } from "../utils/presentationApp";
 import { PresentationModeLauncher } from "./PresentationMode";
 import {
   DownloadIcon,
-  // FolderOpenIcon,
+  FolderOpenIcon,
   LoadingIcon,
-  // MarkdownSaveIcon,
+  MarkdownSaveIcon,
   SettingsIcon,
+  MenuIcon,
 } from "./ui/Icons";
+
+import { HeaderMenuDialog } from "./HeaderMenuDialog";
 
 type AppHeaderProps = {
   fileInputRef: RefObject<HTMLInputElement | null>;
@@ -27,28 +31,47 @@ type AppHeaderProps = {
 };
 
 export function AppHeader({
-  // fileInputRef,
+  fileInputRef,
   slides,
   settings,
   slideStyle,
-  // markdownIsEmpty,
+  markdownIsEmpty,
   isExporting,
   canExport,
-  // onFileChange,
-  // onSaveMarkdown,
+  onFileChange,
+  onSaveMarkdown,
   onOpenSettings,
   onExport,
 }: AppHeaderProps) {
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
   return (
     <header className="app-header">
+      <button
+        type="button"
+        className="header-menu-button"
+        aria-label="メニューを開く"
+        aria-haspopup="dialog"
+        aria-expanded={isMenuOpen}
+        onClick={() => {
+          setIsMenuOpen(true);
+        }}
+      >
+        <MenuIcon />
+      </button>
+
+      <HeaderMenuDialog
+        isOpen={isMenuOpen}
+        onClose={() => {
+          setIsMenuOpen(false);
+        }}
+      />
       <div className="header-actions">
         <PresentationModeLauncher
           slides={slides}
           settings={settings}
           slideStyle={slideStyle}
         />
-
-        {/* <button
+        <button
           type="button"
           className="secondary-button import-markdown-button"
           onClick={() => fileInputRef.current?.click()}
@@ -56,7 +79,6 @@ export function AppHeader({
           <FolderOpenIcon />
           <span>Markdownを開く</span>
         </button>
-
         <input
           ref={fileInputRef}
           type="file"
@@ -64,7 +86,14 @@ export function AppHeader({
           onChange={onFileChange}
           hidden
         />
-
+        <button
+          type="button"
+          className="secondary-button settings-button"
+          onClick={onOpenSettings}
+        >
+          <SettingsIcon />
+          <span>設定</span>
+        </button>
         <button
           type="button"
           className="secondary-button export-markdown-button"
@@ -72,18 +101,8 @@ export function AppHeader({
           disabled={markdownIsEmpty}
         >
           <MarkdownSaveIcon />
-          <span>Markdownを保存</span>
-        </button> */}
-
-        <button
-          type="button"
-          className="secondary-button settings-button"
-          onClick={onOpenSettings}
-        >
-          <SettingsIcon />
-          <span>スライド設定</span>
+          <span>Markdownで保存</span>
         </button>
-
         <button
           type="button"
           className="primary-button export-button"
@@ -91,7 +110,7 @@ export function AppHeader({
           disabled={isExporting || !canExport}
         >
           {isExporting ? <LoadingIcon /> : <DownloadIcon />}
-          <span>{isExporting ? "生成中..." : "PPTXを出力"}</span>
+          <span>{isExporting ? "生成中..." : "PPTXで出力"}</span>
         </button>
       </div>
     </header>

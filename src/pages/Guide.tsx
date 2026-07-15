@@ -2,11 +2,7 @@
 import { useState } from "react";
 
 // stylesheets
-import "../styles/guide.css";
-
-type GuidePageProps = {
-  onBack: () => void;
-};
+import "../css/guide.css";
 
 type CodeExampleProps = {
   title: string;
@@ -154,7 +150,7 @@ const SYNTAX_ITEMS: SyntaxItem[] = [
   {
     title: "リンク",
     description: "リンク文字とURLを指定できます。",
-    code: "[OpenAI](https://openai.com)",
+    code: "[表示したいテキスト](https://example.com)",
   },
   {
     title: "箇条書き",
@@ -228,48 +224,32 @@ function scrollToSection(sectionId: string): void {
   });
 }
 
-export function GuidePage({ onBack }: GuidePageProps) {
+const GuidePage = () => {
   return (
     <div className="guide-page">
       <header className="guide-header">
         <div className="guide-header-inner">
-          <button type="button" className="guide-back-button" onClick={onBack}>
-            <span aria-hidden="true">←</span>
-
-            <span>エディターへ戻る</span>
-          </button>
-
-          <span className="guide-header-title">使い方ガイド</span>
+          <a href="/">
+            <span className="guide-header-title">ポンっ！</span>
+          </a>
         </div>
       </header>
 
       <main className="guide-main">
         <section className="guide-hero">
-          <span className="guide-eyebrow">Markdown PPTX Generator</span>
-
           <h1>
-            テキストを入力して、
+            文字を打つだけ！
             <br />
-            スライドを作成する
+            気づけばスライドが完成している
           </h1>
-
-          <p>
-            Markdownの基本的な入力方法から、 2列・3列のグリッドレイアウト、
-            PPTXの出力方法まで確認できます。
-          </p>
-
-          <button
-            type="button"
-            className="primary-button guide-start-button"
-            onClick={onBack}
-          >
-            スライドを作り始める
-          </button>
+          <a href="/" className="primary-button guide-start-button">
+            とりあえず作ってみる
+          </a>
         </section>
 
         <nav className="guide-navigation" aria-label="ガイドの目次">
           <button type="button" onClick={() => scrollToSection("guide-basic")}>
-            基本的な流れ
+            やることはシンプル
           </button>
 
           <button type="button" onClick={() => scrollToSection("guide-syntax")}>
@@ -292,44 +272,49 @@ export function GuidePage({ onBack }: GuidePageProps) {
         <div className="guide-content">
           <section id="guide-basic" className="guide-section">
             <div className="guide-section-heading">
-              <span className="guide-section-number">01</span>
-
               <div>
-                <h2>基本的な使い方</h2>
-
+                <h2>やることはシンプル</h2>
                 <p>Markdownを入力すると、 プレビューが自動的に更新されます。</p>
               </div>
             </div>
 
             <div className="guide-step-grid">
               <article className="guide-step-card">
-                <span className="guide-step-number">1</span>
+                <div className="guide-step-card-header">
+                  <span className="guide-step-number">1</span>
 
-                <h3>Markdownを入力</h3>
+                  <h3>文字を打つ</h3>
+                </div>
 
                 <p>エディターへタイトルや本文を Markdown形式で入力します。</p>
               </article>
 
               <article className="guide-step-card">
-                <span className="guide-step-number">2</span>
+                <div className="guide-step-card-header">
+                  <span className="guide-step-number">2</span>
 
-                <h3>プレビューを確認</h3>
+                  <h3>プレビューを確認</h3>
+                </div>
 
                 <p>入力内容が自動的に スライドへ変換されます。</p>
               </article>
 
               <article className="guide-step-card">
-                <span className="guide-step-number">3</span>
+                <div className="guide-step-card-header">
+                  <span className="guide-step-number">3</span>
 
-                <h3>デザインを調整</h3>
+                  <h3>デザインを調整</h3>
+                </div>
 
                 <p>色、余白、文字サイズを スライド設定から変更します。</p>
               </article>
 
               <article className="guide-step-card">
-                <span className="guide-step-number">4</span>
+                <div className="guide-step-card-header">
+                  <span className="guide-step-number">4</span>
 
-                <h3>PPTXを出力</h3>
+                  <h3>PPTXを出力</h3>
+                </div>
 
                 <p>完成したスライドを PowerPoint形式で保存します。</p>
               </article>
@@ -340,8 +325,6 @@ export function GuidePage({ onBack }: GuidePageProps) {
 
           <section className="guide-section">
             <div className="guide-section-heading">
-              <span className="guide-section-number">02</span>
-
               <div>
                 <h2>スライドを増やす</h2>
 
@@ -367,8 +350,6 @@ export function GuidePage({ onBack }: GuidePageProps) {
 
           <section id="guide-syntax" className="guide-section">
             <div className="guide-section-heading">
-              <span className="guide-section-number">03</span>
-
               <div>
                 <h2>対応しているMarkdown記法</h2>
 
@@ -395,10 +376,8 @@ export function GuidePage({ onBack }: GuidePageProps) {
 
           <section id="guide-grid" className="guide-section">
             <div className="guide-section-heading">
-              <span className="guide-section-number">04</span>
-
               <div>
-                <h2>2列・3列のグリッド</h2>
+                <h2>グリッドデザイン</h2>
 
                 <p>スライドのコンテンツ領域を 横方向に分割できます。</p>
               </div>
@@ -455,8 +434,6 @@ export function GuidePage({ onBack }: GuidePageProps) {
 
           <section id="guide-export" className="guide-section">
             <div className="guide-section-heading">
-              <span className="guide-section-number">05</span>
-
               <div>
                 <h2>デザイン設定とPPTX出力</h2>
 
@@ -505,8 +482,6 @@ export function GuidePage({ onBack }: GuidePageProps) {
 
           <section id="guide-sample" className="guide-section">
             <div className="guide-section-heading">
-              <span className="guide-section-number">06</span>
-
               <div>
                 <h2>Markdownの完成例</h2>
 
@@ -520,16 +495,17 @@ export function GuidePage({ onBack }: GuidePageProps) {
           </section>
 
           <section className="guide-footer-card">
-            <h2>スライドを作ってみましょう</h2>
+            <h2>やることはキーボードを打つだけ！</h2>
+            <p>メモ感覚で、誰でも簡単にできちゃう</p>
 
-            <p>Markdownを入力すると、 自動的にプレビューへ反映されます。</p>
-
-            <button type="button" className="primary-button" onClick={onBack}>
+            <a href="/" className="primary-button">
               エディターへ戻る
-            </button>
+            </a>
           </section>
         </div>
       </main>
     </div>
   );
-}
+};
+
+export default GuidePage;
