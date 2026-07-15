@@ -78,7 +78,7 @@ export function AppHeader({
           disabled={markdownIsEmpty}
         >
           <MarkdownSaveIcon />
-          <span>Markdownで保存</span>
+          <span>Markdownで出力</span>
         </button>
         <button
           type="button"

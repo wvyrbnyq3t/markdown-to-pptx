@@ -2,6 +2,7 @@
 @import "./slides.css";
 @import "./settings.css";
 @import "./responsive.css";
+@import "./insertMarkdown.css";
 
 :where(.c-avatar) {
   --sz-avatar: 52px;
