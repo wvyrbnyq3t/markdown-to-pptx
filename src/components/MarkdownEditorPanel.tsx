@@ -21,6 +21,12 @@ type MarkdownEditorPanelProps = {
   onFileNameChange: (value: string) => void;
 };
 
+type MarkdownEditorState = {
+  selection: MarkdownSelection;
+  scrollTop: number;
+  scrollLeft: number;
+};
+
 export function MarkdownEditorPanel({
   markdown,
   fileName,
@@ -30,41 +36,69 @@ export function MarkdownEditorPanel({
 }: MarkdownEditorPanelProps) {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
-  const selectionRef = useRef<MarkdownSelection>({
-    start: 0,
-    end: 0,
+  /**
+   * カーソル位置とスクロール位置をまとめて保持します。
+   */
+  const editorStateRef = useRef<MarkdownEditorState>({
+    selection: {
+      start: 0,
+      end: 0,
+    },
+    scrollTop: 0,
+    scrollLeft: 0,
   });
 
   const [isElementSheetOpen, setIsElementSheetOpen] = useState(false);
 
   const lineCount = markdown.split(/\r?\n/).length;
 
-  const rememberSelection = (): void => {
+  /**
+   * 現在のカーソル位置と
+   * スクロール位置を保存します。
+   */
+  const rememberEditorState = (): void => {
     const textarea = textareaRef.current;
 
     if (!textarea) {
       return;
     }
 
-    selectionRef.current = {
-      start: textarea.selectionStart,
+    editorStateRef.current = {
+      selection: {
+        start: textarea.selectionStart,
 
-      end: textarea.selectionEnd,
+        end: textarea.selectionEnd,
+      },
+
+      scrollTop: textarea.scrollTop,
+
+      scrollLeft: textarea.scrollLeft,
     };
   };
 
   const openElementSheet = (): void => {
-    rememberSelection();
+    /*
+     * ダイアログへフォーカスが移る前に、
+     * textareaの状態を保存します。
+     */
+    rememberEditorState();
+
     setIsElementSheetOpen(true);
   };
 
-  const restoreEditorSelection = (
+  /**
+   * Markdown更新後に、カーソル位置と
+   * スクロール位置を復元します。
+   */
+  const restoreEditorState = (
     selectionStart: number,
     selectionEnd: number,
+    scrollTop: number,
+    scrollLeft: number,
   ): void => {
     /*
-     * onMarkdownChangeでtextareaが再描画された後に、
-     * フォーカスと選択範囲を戻します。
+     * Reactによるvalue更新と
+     * ダイアログの終了を待ちます。
      */
     requestAnimationFrame(() => {
       requestAnimationFrame(() => {
@@ -74,20 +108,56 @@ export function MarkdownEditorPanel({
           return;
         }
 
-        textarea.focus();
+        /*
+         * ページ全体がtextareaまで
+         * スクロールされることを防ぎます。
+         */
+        textarea.focus({
+          preventScroll: true,
+        });
 
         textarea.setSelectionRange(selectionStart, selectionEnd);
 
-        selectionRef.current = {
-          start: selectionStart,
-          end: selectionEnd,
+        /*
+         * setSelectionRangeによって
+         * textarea内部がスクロールする場合があるため、
+         * カーソル設定後に復元します。
+         */
+        textarea.scrollTop = scrollTop;
+
+        textarea.scrollLeft = scrollLeft;
+
+        editorStateRef.current = {
+          selection: {
+            start: selectionStart,
+            end: selectionEnd,
+          },
+          scrollTop,
+          scrollLeft,
         };
+
+        /*
+         * 一部ブラウザではフォーカス処理の後に
+         * 再度スクロール位置が変わることがあるため、
+         * 次のフレームでも復元します。
+         */
+        requestAnimationFrame(() => {
+          const currentTextarea = textareaRef.current;
+
+          if (!currentTextarea) {
+            return;
+          }
+
+          currentTextarea.scrollTop = scrollTop;
+
+          currentTextarea.scrollLeft = scrollLeft;
+        });
       });
     });
   };
 
   const handleElementSelect = (definition: MarkdownElementDefinition): void => {
-    const selection = selectionRef.current;
+    const { selection, scrollTop, scrollLeft } = editorStateRef.current;
 
     const normalizedStart = Math.min(
       Math.max(selection.start, 0),
@@ -116,7 +186,12 @@ export function MarkdownEditorPanel({
 
     setIsElementSheetOpen(false);
 
-    restoreEditorSelection(result.selectionStart, result.selectionEnd);
+    restoreEditorState(
+      result.selectionStart,
+      result.selectionEnd,
+      scrollTop,
+      scrollLeft,
+    );
   };
 
   return (
@@ -160,16 +235,23 @@ export function MarkdownEditorPanel({
           onChange={(event) => {
             onMarkdownChange(event.target.value);
 
-            selectionRef.current = {
-              start: event.currentTarget.selectionStart,
+            editorStateRef.current = {
+              selection: {
+                start: event.currentTarget.selectionStart,
 
-              end: event.currentTarget.selectionEnd,
+                end: event.currentTarget.selectionEnd,
+              },
+
+              scrollTop: event.currentTarget.scrollTop,
+
+              scrollLeft: event.currentTarget.scrollLeft,
             };
           }}
-          onSelect={rememberSelection}
-          onClick={rememberSelection}
-          onKeyUp={rememberSelection}
-          onFocus={rememberSelection}
+          onSelect={rememberEditorState}
+          onClick={rememberEditorState}
+          onKeyUp={rememberEditorState}
+          onFocus={rememberEditorState}
+          onScroll={rememberEditorState}
           spellCheck={false}
           aria-label="Markdown入力欄"
         />
@@ -179,7 +261,12 @@ export function MarkdownEditorPanel({
           className="markdown-insert-trigger"
           aria-haspopup="dialog"
           aria-expanded={isElementSheetOpen}
-          onPointerDown={rememberSelection}
+          /*
+           * clickより先に実行されるため、
+           * textareaからフォーカスが外れる前の
+           * 状態を保存できます。
+           */
+          onPointerDown={rememberEditorState}
           onClick={openElementSheet}
         >
           <span className="markdown-insert-trigger-icon" aria-hidden="true">

@@ -9,7 +9,6 @@ type MobileViewTabsProps = {
 
 export function MobileViewTabs({
   currentView,
-  totalSlideCount,
   onChange,
 }: MobileViewTabsProps) {
   return (
@@ -46,7 +45,6 @@ export function MobileViewTabs({
       >
         <PreviewIcon />
         プレビュー
-        <span className="mobile-slide-count">{totalSlideCount}</span>
       </button>
     </div>
   );

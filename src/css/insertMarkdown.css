@@ -49,19 +49,8 @@
     opacity var(--duration-normal);
 }
 
-.markdown-insert-trigger:hover {
-  transform: translateY(-2px);
-
-  box-shadow: 0 8px 24px rgba(37, 99, 235, 0.24);
-}
-
-.markdown-insert-trigger:active {
-  transform: translateY(0);
-}
-
 .markdown-insert-trigger:focus-visible {
-  outline: 3px solid var(--color-focus-ring);
-
+  outline: 2px solid var(--c-active);
   outline-offset: 2px;
 }
 
@@ -207,7 +196,6 @@
 
 .markdown-element-sheet-close:hover {
   color: var(--color-text-strong);
-
   background: var(--color-surface-soft);
 }
 
@@ -332,10 +320,7 @@
 
 .markdown-element-category-tab:hover {
   border-color: var(--c-active);
-
   color: var(--c-active);
-
-  background: var(--color-brand-soft);
 }
 
 .markdown-element-category-tab.is-active {
@@ -390,10 +375,7 @@
 
 .markdown-element-item:hover {
   border-color: var(--c-active);
-
   background: var(--color-brand-soft);
-
-  transform: translateY(-1px);
 }
 
 .markdown-element-item:focus-visible {

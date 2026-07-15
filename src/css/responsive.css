@@ -14,15 +14,11 @@
   .header-actions .export-markdown-button {
     display: none;
   }
-  .presentation-button-icon,
-  .settings-button-icon {
-    width: 20px;
-    height: 20px;
-  }
   .presentation-launch-button,
   .settings-button {
-    height: 52px !important;
-    width: 52px !important;
+    height: 32px !important;
+    width: 32px !important;
+    min-height: 0 !important;
   }
 }
 
