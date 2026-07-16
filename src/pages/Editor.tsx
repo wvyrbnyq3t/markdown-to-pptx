@@ -5,28 +5,58 @@ import { MobileViewTabs } from "../components/MobileViewTabs";
 import { PreviewPanel } from "../components/PreviewPanel";
 import { SettingsDialog } from "../components/settings/SettingsDialog";
 import { WorkspaceResizer } from "../components/WorkspaceResizer";
+import { Toast } from "../components/Toast";
+import { ToastContainer } from "../components/ToastContainer";
 
 // hooks
 import { usePresentationEditor } from "../hooks/usePresentationEditor";
 import { useWorkspaceResize } from "../hooks/useWorkspaceResize";
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 // stylesheets
 import "katex/dist/katex.min.css";
 
 function Home() {
   const [activeMarkdownSlideIndex, setActiveMarkdownSlideIndex] = useState(0);
+  const [dismissedError, setDismissedError] = useState("");
 
   const editor = usePresentationEditor();
   const workspaceResize = useWorkspaceResize();
   const canExport =
     editor.slides.length > 0 || editor.settings.includeTitleSlide;
-
   const activePreviewSlideIndex =
     activeMarkdownSlideIndex + (editor.settings.includeTitleSlide ? 1 : 0);
 
+  useEffect(() => {
+    /*
+     * エラーが一度解消されたら、
+     * 同じ内容のエラーも再表示できるようにします。
+     */
+    if (!editor.errorMessage) {
+      setDismissedError("");
+    }
+  }, [editor.errorMessage]);
+
+  const shouldShowErrorToast =
+    Boolean(editor.errorMessage) && dismissedError !== editor.errorMessage;
+
+  const handleErrorToastClose = useCallback((): void => {
+    setDismissedError(editor.errorMessage);
+  }, [editor.errorMessage]);
+
   return (
     <div className="app">
+      <ToastContainer>
+        {shouldShowErrorToast && (
+          <Toast
+            key={editor.errorMessage}
+            type="error"
+            message={editor.errorMessage}
+            duration={5000}
+            onClose={handleErrorToastClose}
+          />
+        )}
+      </ToastContainer>
       <EditorHeader
         fileInputRef={editor.fileInputRef}
         slides={editor.slides}
@@ -42,12 +72,6 @@ function Home() {
         }}
         onExport={editor.handleExport}
       />
-
-      {editor.errorMessage && (
-        <div className="error-message" role="alert">
-          {editor.errorMessage}
-        </div>
-      )}
       <MobileViewTabs
         currentView={editor.mobileView}
         totalSlideCount={editor.totalSlideCount}

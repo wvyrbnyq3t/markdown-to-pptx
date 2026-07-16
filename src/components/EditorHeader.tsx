@@ -41,7 +41,6 @@ export function EditorHeader({
 }: AppHeaderProps) {
   return (
     <header className="app-header">
-      {" "}
       <div className="header-actions">
         <PresentationModeLauncher
           slides={slides}
