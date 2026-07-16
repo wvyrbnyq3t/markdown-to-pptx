@@ -16,9 +16,12 @@ import {
 type SettingsDialogProps = {
   isOpen: boolean;
   settings: PresentationSettings;
+
   onChange: UpdateSetting;
   onReset: () => void;
   onClose: () => void;
+  onSaveSettings: () => void;
+  onOpenSettingsFile: () => void;
 };
 
 export function SettingsDialog({
@@ -27,6 +30,8 @@ export function SettingsDialog({
   onChange,
   onReset,
   onClose,
+  onSaveSettings,
+  onOpenSettingsFile,
 }: SettingsDialogProps) {
   const dialogRef = useRef<HTMLDivElement>(null);
   const onCloseRef = useRef(onClose);
@@ -246,19 +251,43 @@ export function SettingsDialog({
             />
           </SettingsSection>
         </div>
+        <div className="settings-dialog-footer">
+          <div className="settings-dialog-footer-group settings-dialog-footer-group--left">
+            <button
+              type="button"
+              className="button secondary-button"
+              onClick={onOpenSettingsFile}
+            >
+              JSONを読み込む
+            </button>
 
-        <footer className="settings-dialog-footer">
-          <button
-            type="button"
-            className="reset-settings-button"
-            onClick={onReset}
-          >
-            初期設定に戻す
-          </button>
-          <button type="button" className="primary-button" onClick={onClose}>
-            保存する
-          </button>
-        </footer>
+            <button
+              type="button"
+              className="button secondary-button"
+              onClick={onSaveSettings}
+            >
+              JSONで保存
+            </button>
+          </div>
+
+          <div className="settings-dialog-footer-group settings-dialog-footer-group--right">
+            <button
+              type="button"
+              className="button secondary-button"
+              onClick={onReset}
+            >
+              初期設定に戻す
+            </button>
+
+            <button
+              type="button"
+              className="button primary-button"
+              onClick={onClose}
+            >
+              閉じる
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   );

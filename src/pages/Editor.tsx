@@ -96,9 +96,20 @@ function Home() {
         settings={editor.settings}
         onChange={editor.updateSetting}
         onReset={editor.resetSettings}
+        onSaveSettings={editor.handleSaveSettings}
+        onOpenSettingsFile={() => {
+          editor.settingsFileInputRef.current?.click();
+        }}
         onClose={() => {
           editor.setIsSettingsOpen(false);
         }}
+      />
+      <input
+        ref={editor.settingsFileInputRef}
+        type="file"
+        accept="application/json,.json"
+        hidden
+        onChange={editor.handleSettingsFileChange}
       />
     </div>
   );

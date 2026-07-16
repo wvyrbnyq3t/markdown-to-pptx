@@ -164,12 +164,18 @@
   .title-page-settings {
     grid-template-columns: 1fr;
   }
-
   .settings-dialog-footer {
-    flex-direction: column-reverse;
+    align-items: stretch;
+    flex-direction: column;
   }
 
-  .settings-dialog-footer button {
+  .settings-dialog-footer-group--left {
+    display: none;
+  }
+  .settings-dialog-footer-group--right {
+    display: flex block;
+    align-items: center;
+    justify-content: space-between;
     width: 100%;
   }
 }

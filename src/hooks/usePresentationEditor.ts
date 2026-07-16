@@ -1,8 +1,10 @@
 import { useEffect, useMemo, useRef, useState, type ChangeEvent } from "react";
 
 import { INITIAL_MARKDOWN } from "../constants/initialMarkdown";
+
 import { parseMarkdown } from "../features/markdown/parseMarkdown";
 import { generatePptx } from "../features/pptx/generatePptx";
+
 import {
   DEFAULT_PRESENTATION_SETTINGS,
   type PresentationSettings,
@@ -13,7 +15,10 @@ import {
   normalizePresentationSettings,
   saveMarkdown,
 } from "../utils/presentationApp";
-
+import {
+  downloadPresentationSettings,
+  parsePresentationSettingsJson,
+} from "../utils/presentationSettingsFile";
 import {
   loadPresentationSettings,
   savePresentationSettings,
@@ -28,6 +33,7 @@ export type UpdateSetting = <K extends keyof PresentationSettings>(
 
 export function usePresentationEditor() {
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const settingsFileInputRef = useRef<HTMLInputElement>(null);
 
   const [markdown, setMarkdown] = useState(INITIAL_MARKDOWN);
   const [fileName, setFileName] = useState("presentation");
@@ -105,6 +111,53 @@ export function usePresentationEditor() {
     }
   };
 
+  const handleSaveSettings = (): void => {
+    try {
+      downloadPresentationSettings(settings, fileName);
+
+      setActionError("");
+    } catch (error) {
+      setActionError(
+        error instanceof Error
+          ? error.message
+          : "スライド設定の保存に失敗しました。",
+      );
+    }
+  };
+  const handleSettingsFileChange = async (
+    event: ChangeEvent<HTMLInputElement>,
+  ): Promise<void> => {
+    const input = event.currentTarget;
+    const file = input.files?.[0];
+
+    if (!file) {
+      return;
+    }
+
+    if (!/\.json$/i.test(file.name)) {
+      setActionError(".json形式の設定ファイルを選択してください。");
+
+      input.value = "";
+      return;
+    }
+
+    try {
+      const jsonText = await file.text();
+      const importedSettings = parsePresentationSettingsJson(jsonText);
+
+      setSettings(importedSettings);
+      setActionError("");
+    } catch (error) {
+      setActionError(
+        error instanceof Error
+          ? error.message
+          : "スライド設定の読み込みに失敗しました。",
+      );
+    } finally {
+      input.value = "";
+    }
+  };
+
   const handleSaveMarkdown = (): void => {
     saveMarkdown(markdown, fileName);
   };
@@ -141,26 +194,34 @@ export function usePresentationEditor() {
     setSettings(defaultSettings);
   };
 
-  return {
-    fileInputRef,
-    markdown,
-    fileName,
-    settings,
-    slides,
-    slideStyle,
-    totalSlideCount,
-    mobileView,
-    isSettingsOpen,
-    isExporting,
-    errorMessage,
-    setFileName,
-    setMobileView,
-    setIsSettingsOpen,
-    handleMarkdownChange,
-    handleFileChange,
-    handleSaveMarkdown,
-    handleExport,
-    updateSetting,
-    resetSettings,
-  };
+ return {
+  fileInputRef,
+  settingsFileInputRef,
+
+  markdown,
+  fileName,
+  settings,
+  slides,
+  slideStyle,
+  totalSlideCount,
+  mobileView,
+  isSettingsOpen,
+  isExporting,
+  errorMessage,
+
+  setFileName,
+  setMobileView,
+  setIsSettingsOpen,
+
+  handleMarkdownChange,
+  handleFileChange,
+  handleSaveMarkdown,
+  handleExport,
+
+  handleSaveSettings,
+  handleSettingsFileChange,
+
+  updateSetting,
+  resetSettings,
+};
 }
