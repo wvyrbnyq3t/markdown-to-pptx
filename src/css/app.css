@@ -542,7 +542,7 @@ button:disabled {
   min-width: 180px;
   overflow: hidden;
   border: 1px solid var(--color-border-input);
-  border-radius: 7px;
+  border-radius: var(--radius-sm);
   width: 100%;
   flex-shrink: 1;
 }
