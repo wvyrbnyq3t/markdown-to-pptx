@@ -220,7 +220,7 @@ export function MarkdownEditorPanel({
     const selectionEnd = textarea.selectionEnd;
     const scrollTop = textarea.scrollTop;
     const scrollLeft = textarea.scrollLeft;
-    const spaces = "   ";
+    const spaces = "	";
 
     /*
      * 選択範囲がない場合は、
