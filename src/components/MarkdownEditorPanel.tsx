@@ -52,8 +52,6 @@ export function MarkdownEditorPanel({
 
   const [isElementSheetOpen, setIsElementSheetOpen] = useState(false);
 
-  const lineCount = markdown.split(/\r?\n/).length;
-
   // カーソル位置を特定する
   const lastCursorSlideIndexRef = useRef(-1);
   const notifyCursorSlide = (
@@ -146,9 +144,7 @@ export function MarkdownEditorPanel({
          * カーソル設定後に復元します。
          */
         textarea.scrollTop = scrollTop;
-
         textarea.scrollLeft = scrollLeft;
-
         editorStateRef.current = {
           selection: {
             start: selectionStart,
@@ -171,7 +167,6 @@ export function MarkdownEditorPanel({
           }
 
           currentTextarea.scrollTop = scrollTop;
-
           currentTextarea.scrollLeft = scrollLeft;
         });
       });
@@ -180,21 +175,17 @@ export function MarkdownEditorPanel({
 
   const handleElementSelect = (definition: MarkdownElementDefinition): void => {
     const { selection, scrollTop, scrollLeft } = editorStateRef.current;
-
     const normalizedStart = Math.min(
       Math.max(selection.start, 0),
       markdown.length,
     );
-
     const normalizedEnd = Math.min(
       Math.max(selection.end, normalizedStart),
       markdown.length,
     );
 
     const selectedText = markdown.slice(normalizedStart, normalizedEnd);
-
     const insertion = definition.createInsertion(selectedText);
-
     const result = insertMarkdownAtSelection(
       markdown,
       {
@@ -205,12 +196,82 @@ export function MarkdownEditorPanel({
     );
 
     onMarkdownChange(result.value);
-
     setIsElementSheetOpen(false);
-
     restoreEditorState(
       result.selectionStart,
       result.selectionEnd,
+      scrollTop,
+      scrollLeft,
+    );
+  };
+
+  const handleEditorKeyDown = (
+    event: React.KeyboardEvent<HTMLTextAreaElement>,
+  ): void => {
+    if (event.key !== "Tab") {
+      return;
+    }
+
+    event.preventDefault();
+
+    const textarea = event.currentTarget;
+    const currentMarkdown = textarea.value;
+    const selectionStart = textarea.selectionStart;
+    const selectionEnd = textarea.selectionEnd;
+    const scrollTop = textarea.scrollTop;
+    const scrollLeft = textarea.scrollLeft;
+    const spaces = "   ";
+
+    /*
+     * 選択範囲がない場合は、
+     * カーソル位置へスペース3つを挿入します。
+     */
+    if (selectionStart === selectionEnd) {
+      const nextMarkdown = [
+        currentMarkdown.slice(0, selectionStart),
+        spaces,
+        currentMarkdown.slice(selectionEnd),
+      ].join("");
+      const nextCursorPosition = selectionStart + spaces.length;
+
+      textarea.value = nextMarkdown;
+
+      onMarkdownChange(nextMarkdown);
+      restoreEditorState(
+        nextCursorPosition,
+        nextCursorPosition,
+        scrollTop,
+        scrollLeft,
+      );
+
+      return;
+    }
+
+    /*
+     * 複数行が選択されている場合は、
+     * 選択された各行の先頭へ
+     * スペース3つを追加します。
+     */
+    const firstLineStart =
+      currentMarkdown.lastIndexOf("\n", selectionStart - 1) + 1;
+    const selectedBlock = currentMarkdown.slice(firstLineStart, selectionEnd);
+    const indentedBlock = selectedBlock.replace(/^/gm, spaces);
+    const nextMarkdown = [
+      currentMarkdown.slice(0, firstLineStart),
+      indentedBlock,
+      currentMarkdown.slice(selectionEnd),
+    ].join("");
+
+    const selectedLineCount = selectedBlock.split("\n").length;
+    const nextSelectionStart = selectionStart + spaces.length;
+    const nextSelectionEnd = selectionEnd + spaces.length * selectedLineCount;
+
+    textarea.value = nextMarkdown;
+
+    onMarkdownChange(nextMarkdown);
+    restoreEditorState(
+      nextSelectionStart,
+      nextSelectionEnd,
       scrollTop,
       scrollLeft,
     );
@@ -230,11 +291,8 @@ export function MarkdownEditorPanel({
     >
       <div className="section-header">
         <div>
-          <h2>Markdown</h2>
-
-          <p>「要素を追加」から簡単に入力できます。</p>
+          <h2>マークダウン</h2>
         </div>
-
         <label className="file-name-field">
           <input
             type="text"
@@ -282,12 +340,11 @@ export function MarkdownEditorPanel({
             rememberEditorState;
             notifyCursorSlide(e.currentTarget);
           }}
-          onFocus={
-            (e) => {
-              rememberEditorState;
-              notifyCursorSlide(e.currentTarget);
-            }
-          }
+          onKeyDown={handleEditorKeyDown}
+          onFocus={(e) => {
+            rememberEditorState;
+            notifyCursorSlide(e.currentTarget);
+          }}
           onScroll={rememberEditorState}
           spellCheck={false}
           aria-label="Markdown入力欄"
@@ -311,16 +368,6 @@ export function MarkdownEditorPanel({
           </span>
         </button>
       </div>
-
-      <div className="editor-status">
-        <span>
-          {markdown.length.toLocaleString()}
-          文字
-        </span>
-
-        <span>{lineCount.toLocaleString()}行</span>
-      </div>
-
       <MarkdownElementSheet
         isOpen={isElementSheetOpen}
         onClose={() => {
