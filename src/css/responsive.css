@@ -100,7 +100,6 @@
   .mobile-view-panel.mobile-active {
     display: flex;
     height: 100%;
-    min-height: 520px;
   }
 
   .section-header {

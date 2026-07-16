@@ -24,7 +24,6 @@
 
   aspect-ratio: 1;
   display: inline-flex;
-  min-height: 46px;
   align-items: center;
   justify-content: center;
   gap: var(--space-1);
