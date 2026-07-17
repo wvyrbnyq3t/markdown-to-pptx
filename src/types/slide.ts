@@ -45,15 +45,18 @@ export type SlideElement =
   | {
       type: "subtitle";
       text: string;
+      align?: TextAlignment;
     }
   | {
       type: "contentHeading";
       text: string;
       level: ContentHeadingLevel;
+      align?: TextAlignment;
     }
   | {
       type: "paragraph";
       runs: InlineContent[];
+      align?: TextAlignment;
     }
   | {
       type: "list";
@@ -102,6 +105,8 @@ export type SlideData = {
 };
 
 export type TableAlignment = "left" | "center" | "right" | null;
+
+export type TextAlignment = "left" | "center" | "right";
 
 export type MarkdownTableCell = {
   runs: InlineContent[];

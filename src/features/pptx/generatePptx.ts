@@ -174,6 +174,12 @@ function isColumnBreak(element: ExtendedSlideElement): boolean {
   return element.type === "columnBreak";
 }
 
+function getPptxTextAlignment(
+  align: "left" | "center" | "right" | undefined,
+): "left" | "center" | "right" {
+  return align ?? "left";
+}
+
 function splitSlideElementsIntoColumns(
   elements: ExtendedSlideElement[],
   gridColumns: number,
@@ -605,6 +611,7 @@ function renderSlideColumn({
           margin: 0,
           valign: "top",
           fit: "shrink",
+          align: getPptxTextAlignment(element.align),
         });
 
         placedHeightPx = heightPx;
@@ -639,6 +646,7 @@ function renderSlideColumn({
           margin: 0,
           valign: "top",
           fit: textBoxHeight.fit,
+          align: getPptxTextAlignment(element.align),
         });
 
         placedHeightPx = textBoxHeight.heightPx;
@@ -677,6 +685,7 @@ function renderSlideColumn({
           margin: 0,
           valign: "top",
           fit: textBoxHeight.fit,
+          align: getPptxTextAlignment(element.align),
         });
 
         placedHeightPx = textBoxHeight.heightPx;

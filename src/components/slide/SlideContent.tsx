@@ -36,6 +36,12 @@ export function TitleSlide({ settings }: TitleSlideProps) {
   );
 }
 
+function getTextAlignment(
+  align: "left" | "center" | "right" | undefined,
+): CSSProperties["textAlign"] {
+  return align ?? "left";
+}
+
 function getTableCellAlignment(
   alignment: "left" | "center" | "right" | null | undefined,
 ): CSSProperties["textAlign"] {
@@ -56,7 +62,11 @@ function renderSlideElement(element: SlideElement, key: string): ReactNode {
   switch (element.type) {
     case "subtitle":
       return (
-        <h4 key={key} className="preview-subtitle">
+        <h4
+          key={key}
+          className="preview-subtitle"
+          style={{ textAlign: getTextAlignment(element.align) }}
+        >
           {element.text}
         </h4>
       );
@@ -68,6 +78,7 @@ function renderSlideElement(element: SlideElement, key: string): ReactNode {
           className="preview-content-heading"
           role="heading"
           aria-level={element.level}
+          style={{ textAlign: getTextAlignment(element.align) }}
         >
           {element.text}
         </div>
@@ -75,7 +86,11 @@ function renderSlideElement(element: SlideElement, key: string): ReactNode {
 
     case "paragraph":
       return (
-        <p key={key} className="preview-paragraph">
+        <p
+          key={key}
+          className="preview-paragraph"
+          style={{ textAlign: getTextAlignment(element.align) }}
+        >
           {renderInlineRuns(element.runs, key)}
         </p>
       );

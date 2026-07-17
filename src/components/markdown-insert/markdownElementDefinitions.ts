@@ -520,4 +520,52 @@ export const MARKDOWN_ELEMENTS: readonly MarkdownElementDefinition[] = [
       };
     },
   },
+  {
+    id: "align-left",
+    categoryId: "decoration",
+    symbol: "≡",
+    label: "左寄せ",
+    description: "直後のテキストを左寄せにします。",
+    syntax: "<!-- align: left -->",
+
+    createInsertion: () => {
+      const content = "左寄せにする文章";
+
+      const text = ["<!-- align: left -->", "", content].join("\n");
+
+      return createSelectionInsertion(text, content);
+    },
+  },
+  {
+    id: "align-center",
+    categoryId: "decoration",
+    symbol: "≣",
+    label: "中央寄せ",
+    description: "直後のテキストを中央寄せにします。",
+    syntax: "<!-- align: center -->",
+
+    createInsertion: () => {
+      const content = "中央寄せにする文章";
+
+      const text = ["<!-- align: center -->", "", content].join("\n");
+
+      return createSelectionInsertion(text, content);
+    },
+  },
+  {
+    id: "align-right",
+    categoryId: "decoration",
+    symbol: "≡",
+    label: "右寄せ",
+    description: "直後のテキストを右寄せにします。",
+    syntax: "<!-- align: right -->",
+
+    createInsertion: () => {
+      const content = "右寄せにする文章";
+
+      const text = ["<!-- align: right -->", "", content].join("\n");
+
+      return createSelectionInsertion(text, content);
+    },
+  },
 ];

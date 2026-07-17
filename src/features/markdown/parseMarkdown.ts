@@ -19,6 +19,7 @@ import type {
   SlideElement,
   SlideGridColumns,
   TableAlignment,
+  TextAlignment,
 } from "../../types/slide";
 
 import { isValidSlideGridColumns } from "../../utils/slideGrid";
@@ -44,6 +45,48 @@ function createSlide(title = ""): SlideData {
     gridColumns: 1,
     elements: [],
   };
+}
+
+function parseAlignmentDirective(
+  value: string | undefined,
+): TextAlignment | null {
+  if (!value) {
+    return null;
+  }
+
+  const match = value
+    .trim()
+    .match(/^<!--\s*align\s*:\s*(left|center|right)\s*-->$/i);
+
+  const alignment = match?.[1]?.toLowerCase();
+
+  if (alignment === "left" || alignment === "center" || alignment === "right") {
+    return alignment;
+  }
+
+  return null;
+}
+
+function applyTextAlignment(
+  element: SlideElement,
+  align: TextAlignment | null,
+): SlideElement {
+  if (!align) {
+    return element;
+  }
+
+  switch (element.type) {
+    case "subtitle":
+    case "contentHeading":
+    case "paragraph":
+      return {
+        ...element,
+        align,
+      };
+
+    default:
+      return element;
+  }
 }
 
 function parseSpacingDirective(value: string | undefined): number | null {
@@ -512,6 +555,7 @@ export function parseMarkdown(markdown: string): SlideData[] {
   const slides: SlideData[] = [];
 
   let currentSlide: SlideData | null = null;
+  let pendingTextAlignment: TextAlignment | null = null;
 
   for (const originalNode of tree.children) {
     const node = originalNode as unknown as GenericNode;
@@ -522,6 +566,7 @@ export function parseMarkdown(markdown: string): SlideData[] {
       }
 
       currentSlide = createSlide(getNodeText(node));
+      pendingTextAlignment = null;
 
       continue;
     }
@@ -569,6 +614,14 @@ export function parseMarkdown(markdown: string): SlideData[] {
         continue;
       }
 
+      const alignment = parseAlignmentDirective(node.value);
+
+      if (alignment !== null) {
+        pendingTextAlignment = alignment;
+
+        continue;
+      }
+
       if (isColumnBreakDirective(node.value)) {
         currentSlide.elements.push({
           type: "columnBreak",
@@ -581,7 +634,21 @@ export function parseMarkdown(markdown: string): SlideData[] {
     const element = parseElement(node);
 
     if (element) {
-      currentSlide.elements.push(element);
+      const alignedElement = applyTextAlignment(element, pendingTextAlignment);
+
+      currentSlide.elements.push(alignedElement);
+
+      /*
+       * 配置指定は直後の対応要素にだけ適用します。
+       */
+      if (
+        element.type === "subtitle" ||
+        element.type === "contentHeading" ||
+        element.type === "paragraph" ||
+        element.type === "quote"
+      ) {
+        pendingTextAlignment = null;
+      }
     }
   }
 
