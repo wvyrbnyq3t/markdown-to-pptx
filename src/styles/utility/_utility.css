@@ -1,0 +1,7 @@
+.u-visually-hidden { position: absolute !important; width: 1px !important; height: 1px !important; padding: 0 !important; margin: -1px !important; border: 0 !important; clip: rect(0, 0, 0, 0) !important; overflow: hidden !important; white-space: nowrap !important; }
+
+/* 日本語のブラウザリセットで斜体が打ち消されないよう指定。 */
+.u-text-bold { font-weight: 750 !important; }
+.u-text-italic { font-style: oblique 12deg !important; font-synthesis: style; }
+.u-text-strike { text-decoration: line-through; }
+.u-slide-accent { color: var(--slide-accent); }

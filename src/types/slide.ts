@@ -1,122 +1,54 @@
-export type InlineStyle = {
-  accent?: boolean;
-  bold?: boolean;
-  italic?: boolean;
-  link?: string;
-  linkTitle?: string;
-};
-
-export type InlineContent = (
-  | {
-      type: "text";
-      text: string;
-    }
-  | {
-      type: "math";
-      latex: string;
-    }
-) &
-  InlineStyle;
-
-export type ContentHeadingLevel = 3 | 4 | 5 | 6;
-
-/**
- * スライドの横方向の分割数。
- */
-export type SlideGridColumns = number;
-
-export type MarkdownListItem = {
-  runs: InlineContent[];
-  children: MarkdownList[];
-};
-
-export type MarkdownList = {
-  ordered: boolean;
-  start: number;
-  items: MarkdownListItem[];
-};
-
-export type QuoteLine = {
-  depth: number;
-  runs: InlineContent[];
-};
-
-export type SlideElement =
-  | {
-      type: "subtitle";
-      text: string;
-      align?: TextAlignment;
-    }
-  | {
-      type: "contentHeading";
-      text: string;
-      level: ContentHeadingLevel;
-      align?: TextAlignment;
-    }
-  | {
-      type: "paragraph";
-      runs: InlineContent[];
-      align?: TextAlignment;
-    }
-  | {
-      type: "list";
-      list: MarkdownList;
-    }
-  | {
-      type: "quote";
-      lines: QuoteLine[];
-    }
-  | {
-      type: "code";
-      language?: string;
-      code: string;
-    }
-  | {
-      type: "image";
-      src: string;
-      alt: string;
-    }
-  | {
-      type: "math";
-      latex: string;
-    }
-  | {
-      type: "table";
-      table: MarkdownTable;
-    }
-  | {
-      type: "columnBreak";
-    }
-  | {
-      type: "spacing";
-      size: number;
-    };
-
-export type SlideData = {
-  id: string;
-  title: string;
-
-  /**
-   * 1列、2列、3列のいずれか。
-   */
-  gridColumns: SlideGridColumns;
-
-  elements: SlideElement[];
-};
-
-export type TableAlignment = "left" | "center" | "right" | null;
-
+/** PowerPointとプレビューで共有する、中間データの型定義。 */
 export type TextAlignment = "left" | "center" | "right";
 
-export type MarkdownTableCell = {
-  runs: InlineContent[];
-};
+export interface TextRun {
+  text: string;
+  bold?: boolean;
+  italic?: boolean;
+  strike?: boolean;
+  code?: boolean;
+  math?: boolean;
+  link?: string;
+  color?: "accent";
+}
 
-export type MarkdownTableRow = {
-  cells: MarkdownTableCell[];
-};
+export interface ListLine {
+  runs: TextRun[];
+  depth: number;
+  ordered: boolean;
+  number?: number;
+}
 
-export type MarkdownTable = {
-  alignments: TableAlignment[];
-  rows: MarkdownTableRow[];
-};
+export interface TableCell {
+  runs: TextRun[];
+}
+
+export interface TableData {
+  headers: TableCell[];
+  rows: TableCell[][];
+  alignments: TextAlignment[];
+}
+
+export type SlideElement =
+  | { type: "subtitle"; text: string; align?: TextAlignment }
+  | { type: "heading"; text: string; level: 3 | 4 | 5 | 6; align?: TextAlignment }
+  | { type: "paragraph"; runs: TextRun[]; align?: TextAlignment }
+  | { type: "list"; lines: ListLine[] }
+  | { type: "quote"; runs: TextRun[]; align?: TextAlignment }
+  | { type: "code"; code: string; language?: string }
+  | { type: "math"; latex: string; inline?: boolean; align?: TextAlignment }
+  | { type: "table"; table: TableData }
+  | { type: "icon"; name: string; align?: TextAlignment }
+  | { type: "card"; runs: TextRun[]; align?: TextAlignment }
+  | { type: "spacing"; amount: number }
+  | { type: "columnBreak" };
+
+export interface SlideData {
+  id: string;
+  title: string;
+  gridColumns: number;
+  elements: SlideElement[];
+}
+
+export const SLIDE_WIDTH = 1280;
+export const SLIDE_HEIGHT = 720;

@@ -1,10 +1,7 @@
+import React from "react";
 import { createRoot } from "react-dom/client";
+import "katex/dist/katex.min.css";
+import "./styles/index.css";
+import { App } from "./app/App";
 
-import App from "./App";
-
-import "./css/reset.css";
-import "./css/tokens.css";
-import "./css/index.css";
-import "./css/style.css";
-
-createRoot(document.getElementById("root")!).render(<App />);
+createRoot(document.getElementById("root")!).render(<React.StrictMode><App /></React.StrictMode>);

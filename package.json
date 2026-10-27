@@ -11,8 +11,8 @@
   },
   "dependencies": {
     "@types/mdast": "^4.0.4",
-    "firebase": "^12.16.0",
     "katex": "^0.17.0",
+    "lucide-react": "^1.62.0",
     "mathjax-full": "^3.2.2",
     "mdast-util-to-string": "^4.0.0",
     "pptxgenjs": "^4.0.1",

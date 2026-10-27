@@ -1,0 +1,12 @@
+.p-insert-sheet { align-self: flex-end; width: min(100%, 900px); max-height: 80dvh; display: flex; flex-direction: column; overflow: hidden; margin: 0 auto; border-radius: var(--radius-lg) var(--radius-lg) 0 0; background: var(--color-surface); box-shadow: var(--shadow-lg); }
+.c-overlay:has(.p-insert-sheet) { align-items: flex-end; padding-bottom: 0; }
+.p-insert-sheet__header { padding: var(--space-5) var(--space-6); display: flex; justify-content: space-between; gap: var(--space-4); border-bottom: 1px solid var(--color-border); }
+.p-insert-sheet__header strong { font-size: var(--font-size-xl); }
+.p-insert-sheet__header p { color: var(--color-text-muted); font-size: var(--font-size-sm); margin-top: var(--space-1); }
+.p-insert-sheet__tabs { display: flex; gap: var(--space-2); overflow-x: auto; padding: var(--space-2) var(--space-6); border-bottom: 1px solid var(--color-border); }
+.p-insert-sheet__grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--space-3); overflow: auto; padding: var(--space-5) var(--space-6) var(--space-8); }
+.p-insert-sheet__option { display: flex; flex-direction: column; gap: var(--space-1); text-align: left; min-height: 84px; padding: var(--space-4); border: 1px solid var(--color-border); border-radius: var(--radius-md); background: var(--color-surface); }
+.p-insert-sheet__option:hover { border-color: var(--color-brand); background: var(--color-brand-soft); }
+.p-insert-sheet__option strong { color: var(--color-text); }
+.p-insert-sheet__option span { color: var(--color-text-secondary); font-size: var(--font-size-sm); }
+@media (max-width: 700px) { .p-insert-sheet__grid { grid-template-columns: repeat(2, minmax(0, 1fr)); padding: var(--space-3); } .p-insert-sheet__header, .p-insert-sheet__tabs { padding: var(--space-3); } }

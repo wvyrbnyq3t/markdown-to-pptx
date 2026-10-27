@@ -1,0 +1,107 @@
+/* FLOCSS / Project: 発表画面。スライド本体の見た目は .c-slide に委譲する。 */
+.p-presentation {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-presentation);
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100vh;
+  height: 100dvh;
+  background: var(--color-presentation-background);
+  color: var(--color-text-on-dark);
+  outline: none;
+}
+.p-presentation__stage {
+  display: flex;
+  flex: 1 1 auto;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+  touch-action: pan-y;
+}
+.p-presentation__slide-frame {
+  position: relative;
+  flex-shrink: 0;
+  overflow: hidden;
+}
+.p-presentation__slide-scaled {
+  transform-origin: top left;
+}
+.p-presentation__empty {
+  text-align: center;
+  color: var(--color-text-on-dark);
+}
+.p-presentation__toolbar {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  min-height: var(--space-16);
+  padding: var(--space-2) var(--space-5);
+  padding-bottom: max(var(--space-2), env(safe-area-inset-bottom));
+  background: var(--color-presentation-toolbar);
+}
+.p-presentation__slide-info {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  min-width: 0;
+}
+.p-presentation__slide-title {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: var(--font-size-md);
+}
+.p-presentation__slide-count {
+  flex-shrink: 0;
+  font-size: var(--font-size-sm);
+  font-variant-numeric: tabular-nums;
+}
+.p-presentation__controls {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-shrink: 0;
+}
+.p-presentation__button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  min-width: var(--control-height-large);
+  min-height: var(--control-height-large);
+  padding: var(--space-2);
+  border: none;
+  border-radius: var(--radius-sm);
+  color: var(--color-text-on-dark);
+  background: transparent;
+}
+.p-presentation__button:hover:not(:disabled) {
+  background: var(--color-presentation-button-hover);
+}
+.p-presentation__button:disabled {
+  color: var(--color-presentation-button-disabled);
+}
+.p-presentation__button--exit {
+  padding-inline: var(--space-3);
+}
+@media (max-width: 600px) {
+  .p-presentation__toolbar {
+    gap: var(--space-2);
+    padding-inline: var(--space-2);
+  }
+  .p-presentation__slide-title {
+    display: none;
+  }
+  .p-presentation__controls {
+    gap: var(--space-1);
+  }
+  .p-presentation__button--exit span {
+    display: none;
+  }
+}

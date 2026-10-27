@@ -2,659 +2,335 @@ import { unified } from "unified";
 import remarkParse from "remark-parse";
 import remarkGfm from "remark-gfm";
 import remarkMath from "remark-math";
-import { v4 as uuidv4 } from "uuid";
-
-import type { Root } from "mdast";
-
 import type {
-  ContentHeadingLevel,
-  InlineContent,
-  InlineStyle,
-  MarkdownList,
-  MarkdownListItem,
-  MarkdownTable,
-  MarkdownTableRow,
-  QuoteLine,
+  ListLine,
   SlideData,
   SlideElement,
-  SlideGridColumns,
-  TableAlignment,
+  TableCell,
   TextAlignment,
+  TextRun,
 } from "../../types/slide";
 
-import { isValidSlideGridColumns } from "../../utils/slideGrid";
-
-type GenericNode = {
+/** mdastの必要なフィールドだけを参照する、読み取り専用の内部型。 */
+interface MarkdownNode {
   type: string;
   value?: string;
-  url?: string;
-  title?: string | null;
-  alt?: string | null;
+  children?: MarkdownNode[];
   depth?: number;
-  children?: GenericNode[];
-  lang?: string | null;
-  ordered?: boolean | null;
-  start?: number | null;
+  ordered?: boolean;
+  start?: number;
+  lang?: string;
+  url?: string;
   align?: Array<"left" | "center" | "right" | null>;
-};
-
-function createSlide(title = ""): SlideData {
-  return {
-    id: uuidv4(),
-    title,
-    gridColumns: 1,
-    elements: [],
-  };
 }
 
-function parseAlignmentDirective(
-  value: string | undefined,
-): TextAlignment | null {
-  if (!value) {
-    return null;
-  }
+const processor = unified().use(remarkParse).use(remarkGfm).use(remarkMath);
 
-  const match = value
-    .trim()
-    .match(/^<!--\s*align\s*:\s*(left|center|right)\s*-->$/i);
-
-  const alignment = match?.[1]?.toLowerCase();
-
-  if (alignment === "left" || alignment === "center" || alignment === "right") {
-    return alignment;
-  }
-
-  return null;
+function plainText(node: MarkdownNode): string {
+  if (typeof node.value === "string") return node.value;
+  return (node.children ?? []).map(plainText).join("");
 }
 
-function applyTextAlignment(
-  element: SlideElement,
-  align: TextAlignment | null,
-): SlideElement {
-  if (!align) {
-    return element;
-  }
-
-  switch (element.type) {
-    case "subtitle":
-    case "contentHeading":
-    case "paragraph":
-      return {
-        ...element,
-        align,
-      };
-
-    default:
-      return element;
+function addRun(runs: TextRun[], run: TextRun): void {
+  if (!run.text) return;
+  const previous = runs[runs.length - 1];
+  if (
+    previous &&
+    previous.bold === run.bold &&
+    previous.italic === run.italic &&
+    previous.strike === run.strike &&
+    previous.code === run.code &&
+    previous.math === run.math &&
+    previous.link === run.link &&
+    previous.color === run.color
+  ) {
+    previous.text += run.text;
+  } else {
+    runs.push(run);
   }
 }
 
-function parseSpacingDirective(value: string | undefined): number | null {
-  if (!value) {
-    return null;
-  }
-
-  const match = value.trim().match(/^<!--\s*spacing\s*:\s*(\d+)\s*-->$/i);
-
-  const rawSize = match?.[1];
-
-  if (!rawSize) {
-    return null;
-  }
-
-  const size = Number.parseInt(rawSize, 10);
-
-  if (!Number.isSafeInteger(size) || size < 0) {
-    return null;
-  }
-
-  return size;
-}
-
-function parseGridColumnsDirective(
-  value: string | undefined,
-): SlideGridColumns | null {
-  if (!value) {
-    return null;
-  }
-
-  const match = value.trim().match(/^<!--\s*grid\s*:\s*(\d+)\s*-->$/i);
-  const rawColumns = match?.[1];
-
-  if (!rawColumns) {
-    return null;
-  }
-
-  const columns = Number.parseInt(rawColumns, 10);
-
-  if (!isValidSlideGridColumns(columns)) {
-    return null;
-  }
-
-  return columns;
-}
-
-function isColumnBreakDirective(value: string | undefined): boolean {
-  if (!value) {
-    return false;
-  }
-
-  return /^<!--\s*column\s*-->$/i.test(value.trim());
-}
-
-function isContentHeadingLevel(
-  depth: number | undefined,
-): depth is ContentHeadingLevel {
-  return depth === 3 || depth === 4 || depth === 5 || depth === 6;
-}
-
-function getNodeText(node: GenericNode): string {
-  if (typeof node.value === "string") {
-    return node.value;
-  }
-
-  return (node.children ?? []).map(getNodeText).join("");
-}
-
-function hasSameStyle(first: InlineContent, second: InlineContent): boolean {
-  return (
-    first.bold === second.bold &&
-    first.italic === second.italic &&
-    first.accent === second.accent &&
-    first.link === second.link &&
-    first.linkTitle === second.linkTitle
-  );
-}
-
-function mergeInlineRuns(runs: InlineContent[]): InlineContent[] {
-  const merged: InlineContent[] = [];
-
-  for (const run of runs) {
-    const previous = merged.at(-1);
-
-    if (
-      run.type === "text" &&
-      previous?.type === "text" &&
-      hasSameStyle(previous, run)
+/** ASTのインライン要素を、PPTXでも利用できるテキストランへ変換する。 */
+function parseInline(
+  nodes: MarkdownNode[],
+  style: Omit<TextRun, "text"> = {},
+): TextRun[] {
+  const result: TextRun[] = [];
+  for (const node of nodes) {
+    if (node.type === "text" || node.type === "inlineCode") {
+      addRun(result, {
+        ...style,
+        text: node.value ?? "",
+        code: style.code || node.type === "inlineCode",
+      });
+    } else if (node.type === "inlineMath") {
+      addRun(result, { ...style, text: node.value ?? "", math: true });
+    } else if (node.type === "break") {
+      addRun(result, { ...style, text: "\n" });
+    } else if (
+      node.type === "strong" ||
+      node.type === "emphasis" ||
+      node.type === "delete" ||
+      node.type === "link"
     ) {
-      previous.text += run.text;
-      continue;
+      const nextStyle = {
+        ...style,
+        ...(node.type === "strong" ? { bold: true } : {}),
+        ...(node.type === "emphasis" ? { italic: true } : {}),
+        ...(node.type === "delete" ? { strike: true } : {}),
+        ...(node.type === "link" ? { link: node.url } : {}),
+      };
+      for (const nested of parseInline(node.children ?? [], nextStyle))
+        addRun(result, nested);
+    } else if (node.children) {
+      for (const nested of parseInline(node.children, style))
+        addRun(result, nested);
     }
-
-    merged.push(run);
+    // 未対応のHTMLタグなどは出力しない。任意のHTMLは描画しない。
   }
-
-  return merged;
+  return result;
 }
 
-function splitAccentText(
-  text: string,
-  inheritedStyle: InlineStyle,
-): InlineContent[] {
-  const runs: InlineContent[] = [];
-
-  const accentPattern = /==([\s\S]+?)==/g;
-
-  let previousIndex = 0;
-  let match: RegExpExecArray | null;
-
-  while ((match = accentPattern.exec(text)) !== null) {
-    /*
-     * アクセント部分より前の通常テキスト。
-     */
-    if (match.index > previousIndex) {
-      runs.push({
-        type: "text",
-        text: text.slice(previousIndex, match.index),
-        ...inheritedStyle,
-      });
-    }
-
-    /*
-     * ==...==で囲まれた部分。
-     */
-    runs.push({
-      type: "text",
-      text: match[1],
-      ...inheritedStyle,
-      accent: true,
+function flattenList(node: MarkdownNode, depth = 0): ListLine[] {
+  const lines: ListLine[] = [];
+  const ordered = Boolean(node.ordered);
+  let number = node.start ?? 1;
+  for (const item of node.children ?? []) {
+    const contentNodes = (item.children ?? []).filter(
+      (child) => child.type !== "list",
+    );
+    const textNodes = contentNodes.flatMap(
+      (child) => child.children ?? (child.type === "text" ? [child] : []),
+    );
+    lines.push({
+      runs: parseInline(textNodes),
+      depth: Math.min(depth, 4),
+      ordered,
+      number: ordered ? number : undefined,
     });
-
-    previousIndex = match.index + match[0].length;
-  }
-
-  /*
-   * 最後のアクセント部分より後にある
-   * 通常テキスト。
-   */
-  if (previousIndex < text.length) {
-    runs.push({
-      type: "text",
-      text: text.slice(previousIndex),
-      ...inheritedStyle,
-    });
-  }
-
-  /*
-   * ==...==が存在しない場合。
-   */
-  if (runs.length === 0) {
-    return [
-      {
-        type: "text",
-        text,
-        ...inheritedStyle,
-      },
-    ];
-  }
-
-  return runs;
-}
-
-function parseInlineNode(
-  node: GenericNode,
-  inheritedStyle: InlineStyle = {},
-): InlineContent[] {
-  switch (node.type) {
-    case "text":
-      return splitAccentText(node.value ?? "", inheritedStyle);
-
-    case "inlineMath":
-      return [
-        {
-          type: "math",
-          latex: node.value ?? "",
-          ...inheritedStyle,
-        },
-      ];
-
-    case "inlineCode":
-      return [
-        {
-          type: "text",
-          text: node.value ?? "",
-          ...inheritedStyle,
-        },
-      ];
-
-    case "break":
-      return [
-        {
-          type: "text",
-          text: "\n",
-          ...inheritedStyle,
-        },
-      ];
-
-    case "strong":
-      return (node.children ?? []).flatMap((child) =>
-        parseInlineNode(child, {
-          ...inheritedStyle,
-          bold: true,
-        }),
-      );
-
-    case "emphasis":
-      return (node.children ?? []).flatMap((child) =>
-        parseInlineNode(child, {
-          ...inheritedStyle,
-          italic: true,
-        }),
-      );
-
-    case "link":
-      return (node.children ?? []).flatMap((child) =>
-        parseInlineNode(child, {
-          ...inheritedStyle,
-          link: node.url ?? "",
-          linkTitle: node.title ?? undefined,
-        }),
-      );
-
-    case "image":
-      return [
-        {
-          type: "text",
-          text: node.alt ?? "",
-          ...inheritedStyle,
-        },
-      ];
-
-    default:
-      return (node.children ?? []).flatMap((child) =>
-        parseInlineNode(child, inheritedStyle),
-      );
-  }
-}
-
-function parseInlineChildren(children: GenericNode[] = []): InlineContent[] {
-  return mergeInlineRuns(children.flatMap((child) => parseInlineNode(child)));
-}
-
-function normalizeTableAlignment(value: unknown): TableAlignment {
-  if (value === "left" || value === "center" || value === "right") {
-    return value;
-  }
-
-  return null;
-}
-
-function parseMarkdownTableRow(node: GenericNode): MarkdownTableRow {
-  return {
-    cells: (node.children ?? [])
-      .filter((child) => {
-        return child.type === "tableCell";
-      })
-      .map((cell) => {
-        return {
-          runs: parseInlineChildren(cell.children),
-        };
-      }),
-  };
-}
-
-function parseMarkdownTable(node: GenericNode): MarkdownTable {
-  const rows = (node.children ?? [])
-    .filter((child) => {
-      return child.type === "tableRow";
-    })
-    .map(parseMarkdownTableRow);
-
-  const columnCount = Math.max(
-    node.align?.length ?? 0,
-    ...rows.map((row) => {
-      return row.cells.length;
-    }),
-    0,
-  );
-
-  const alignments = Array.from(
-    {
-      length: columnCount,
-    },
-    (_, index) => {
-      return normalizeTableAlignment(node.align?.[index]);
-    },
-  );
-
-  return {
-    rows,
-    alignments,
-  };
-}
-
-function parseMarkdownListItem(node: GenericNode): MarkdownListItem {
-  const runs: InlineContent[] = [];
-  const children: MarkdownList[] = [];
-
-  for (const child of node.children ?? []) {
-    /*
-     * リスト項目の本文。
-     */
-    if (child.type === "paragraph") {
-      const paragraphRuns = parseInlineChildren(child.children);
-
-      /*
-       * 1つのリスト項目に複数段落がある場合は、
-       * 改行でつなぐ。
-       */
-      if (runs.length > 0 && paragraphRuns.length > 0) {
-        runs.push({
-          type: "text",
-          text: "\n",
-        });
-      }
-
-      runs.push(...paragraphRuns);
-
-      continue;
-    }
-
-    /*
-     * リスト項目内にあるlistは
-     * 子リストとして再帰的に解析する。
-     */
-    if (child.type === "list") {
-      children.push(parseMarkdownList(child));
+    number += 1;
+    for (const child of item.children ?? []) {
+      if (child.type === "list") lines.push(...flattenList(child, depth + 1));
     }
   }
-
-  return {
-    runs: mergeInlineRuns(runs),
-    children,
-  };
-}
-
-function parseMarkdownList(node: GenericNode): MarkdownList {
-  const items = (node.children ?? [])
-    .filter((child) => child.type === "listItem")
-    .map(parseMarkdownListItem);
-
-  return {
-    ordered: node.ordered === true,
-
-    start: node.ordered === true ? (node.start ?? 1) : 1,
-
-    items,
-  };
-}
-
-function parseQuoteLines(node: GenericNode, depth = 1): QuoteLine[] {
-  const lines: QuoteLine[] = [];
-
-  for (const child of node.children ?? []) {
-    if (child.type === "paragraph") {
-      lines.push({
-        depth,
-        runs: parseInlineChildren(child.children),
-      });
-
-      continue;
-    }
-
-    if (child.type === "blockquote") {
-      lines.push(...parseQuoteLines(child, depth + 1));
-
-      continue;
-    }
-
-    /*
-     * 引用内に見出しなどが書かれた場合も、
-     * 引用文として表示する。
-     */
-    if (child.children) {
-      lines.push({
-        depth,
-        runs: parseInlineChildren(child.children),
-      });
-    }
-  }
-
   return lines;
 }
 
-function parseElement(node: GenericNode): SlideElement | null {
-  if (node.type === "heading" && node.depth === 2) {
-    return {
-      type: "subtitle",
-      text: getNodeText(node),
-    };
-  }
-
-  if (node.type === "heading" && isContentHeadingLevel(node.depth)) {
-    return {
-      type: "contentHeading",
-      text: getNodeText(node),
-      level: node.depth,
-    };
-  }
-
-  if (node.type === "paragraph") {
-    const children = node.children ?? [];
-
-    if (children.length === 1 && children[0].type === "image") {
-      return {
-        type: "image",
-        src: children[0].url ?? "",
-        alt: children[0].alt ?? "",
-      };
-    }
-
-    return {
-      type: "paragraph",
-      runs: parseInlineChildren(children),
-    };
-  }
-
-  if (node.type === "list") {
-    return {
-      type: "list",
-      list: parseMarkdownList(node),
-    };
-  }
-
-  if (node.type === "blockquote") {
-    return {
-      type: "quote",
-      lines: parseQuoteLines(node),
-    };
-  }
-
-  if (node.type === "code") {
-    return {
-      type: "code",
-      language: node.lang ?? undefined,
-      code: node.value ?? "",
-    };
-  }
-
-  if (node.type === "math") {
-    return {
-      type: "math",
-      latex: node.value ?? "",
-    };
-  }
-
-  if (node.type === "table") {
-    return {
-      type: "table",
-      table: parseMarkdownTable(node),
-    };
-  }
-
-  return null;
+function tableCell(node: MarkdownNode): TableCell {
+  return { runs: parseInline(node.children ?? []) };
 }
 
-export function parseMarkdown(markdown: string): SlideData[] {
-  const tree = unified()
-    .use(remarkParse)
-    .use(remarkGfm)
-    .use(remarkMath)
-    .parse(markdown) as Root;
-
-  const slides: SlideData[] = [];
-
-  let currentSlide: SlideData | null = null;
-  let pendingTextAlignment: TextAlignment | null = null;
-
-  for (const originalNode of tree.children) {
-    const node = originalNode as unknown as GenericNode;
-
-    if (node.type === "heading" && node.depth === 1) {
-      if (currentSlide) {
-        slides.push(currentSlide);
+function parseNode(node: MarkdownNode): SlideElement | null {
+  switch (node.type) {
+    case "heading":
+      return node.depth === 2
+        ? { type: "subtitle", text: plainText(node) }
+        : node.depth && node.depth >= 3 && node.depth <= 6
+          ? {
+              type: "heading",
+              level: node.depth as 3 | 4 | 5 | 6,
+              text: plainText(node),
+            }
+          : null;
+    case "paragraph": {
+      const runs = parseInline(node.children ?? []);
+      return runs.length ? { type: "paragraph", runs } : null;
+    }
+    case "blockquote": {
+      const runs: TextRun[] = [];
+      for (const [index, child] of (node.children ?? []).entries()) {
+        if (index !== 0) runs.push({ text: "\n" });
+        runs.push(...parseInline(child.children ?? []));
       }
+      return { type: "quote", runs };
+    }
+    case "list":
+      return { type: "list", lines: flattenList(node) };
+    case "code":
+      return { type: "code", code: node.value ?? "", language: node.lang };
+    case "math":
+      return { type: "math", latex: node.value ?? "" };
+    case "table": {
+      const rows = (node.children ?? []).map((row) =>
+        (row.children ?? []).map(tableCell),
+      );
+      return {
+        type: "table",
+        table: {
+          headers: rows[0] ?? [],
+          rows: rows.slice(1),
+          alignments: (node.align ?? []).map((align) => align ?? "left"),
+        },
+      };
+    }
+    default:
+      return null;
+  }
+}
 
-      currentSlide = createSlide(getNodeText(node));
-      pendingTextAlignment = null;
+const DIRECTIVE_ALIGNMENT = /^<!--\s*align\s*:\s*(left|center|right)\s*-->$/i;
+const DIRECTIVE_GRID = /^<!--\s*(?:grid|grid-columns)\s*:\s*(\d+)\s*-->$/i;
+const DIRECTIVE_SPACING = /^<!--\s*spacing\s*:\s*(\d+)\s*-->$/i;
+const DIRECTIVE_ICON = /^<!--\s*icon\s*:\s*([a-z0-9_\-]+)\s*-->$/i;
+const DIRECTIVE_COLUMN = /^<!--\s*(?:column|column-break)\s*-->$/i;
+const DIRECTIVE_CARD_START = /^<!--\s*card:start\s*-->$/i;
+const DIRECTIVE_CARD_END = /^<!--\s*card:end\s*-->$/i;
 
+function isAlignable(
+  element: SlideElement,
+): element is Extract<SlideElement, { align?: TextAlignment }> {
+  return [
+    "subtitle",
+    "heading",
+    "paragraph",
+    "quote",
+    "math",
+    "icon",
+    "card",
+  ].includes(element.type);
+}
+
+/** HTMLコメントを命令として扱う。任意のHTMLは無視し、XSSを避ける。 */
+export function parseMarkdown(markdown: string): SlideData[] {
+  const tree = processor.parse(markdown) as unknown as {
+    children: MarkdownNode[];
+  };
+  const slides: SlideData[] = [];
+  let current: SlideData = {
+    id: "slide-1",
+    title: "スライド 1",
+    gridColumns: 1,
+    elements: [],
+  };
+  let pendingAlignment: TextAlignment | null = null;
+  let cardNodes: MarkdownNode[] | null = null;
+  let sawContent = false;
+
+  function pushSlide(): void {
+    slides.push(current);
+    current = {
+      id: `slide-${slides.length + 1}`,
+      title: `スライド ${slides.length + 1}`,
+      gridColumns: 1,
+      elements: [],
+    };
+    pendingAlignment = null;
+    cardNodes = null;
+    sawContent = false;
+  }
+
+  function addElement(element: SlideElement): void {
+    if (pendingAlignment && isAlignable(element)) {
+      current.elements.push({ ...element, align: pendingAlignment });
+      pendingAlignment = null;
+    } else {
+      current.elements.push(element);
+    }
+    sawContent = true;
+  }
+
+  for (const node of tree.children) {
+    if (node.type === "heading" && node.depth === 1) {
+      if (sawContent || slides.length > 0 || current.title !== "スライド 1")
+        pushSlide();
+      current.title = plainText(node).trim() || `スライド ${slides.length + 1}`;
+      sawContent = true;
+      pendingAlignment = null;
       continue;
     }
 
-    if (!currentSlide) {
-      currentSlide = createSlide();
-    }
-
-    /*
-     * <!-- grid: 2 -->
-     * <!-- grid: 3 -->
-     */
     if (node.type === "html") {
-      const gridColumns = parseGridColumnsDirective(node.value);
-
-      if (gridColumns !== null) {
-        currentSlide.gridColumns = gridColumns;
-
+      const directive = (node.value ?? "").trim();
+      if (DIRECTIVE_CARD_START.test(directive)) {
+        cardNodes = [];
         continue;
       }
-
-      const spacingSize = parseSpacingDirective(node.value);
-
-      if (spacingSize !== null) {
-        const previousElement =
-          currentSlide.elements[currentSlide.elements.length - 1];
-
-        /*
-         * 連続する余白指定は1要素へまとめます。
-         *
-         * spacing: 2
-         * spacing: 3
-         * ↓
-         * spacing: 5
-         */
-        if (previousElement?.type === "spacing") {
-          previousElement.size += spacingSize;
-        } else {
-          currentSlide.elements.push({
-            type: "spacing",
-            size: spacingSize,
-          });
+      if (DIRECTIVE_CARD_END.test(directive)) {
+        if (cardNodes !== null) {
+          const runs: TextRun[] = [];
+          for (const [index, child] of cardNodes.entries()) {
+            if (index > 0) runs.push({ text: "\n" });
+            runs.push(...parseInline(child.children ?? []));
+          }
+          addElement({ type: "card", runs });
+          cardNodes = null;
         }
-
         continue;
       }
-
-      const alignment = parseAlignmentDirective(node.value);
-
-      if (alignment !== null) {
-        pendingTextAlignment = alignment;
-
+      const alignment = directive
+        .match(DIRECTIVE_ALIGNMENT)?.[1]
+        ?.toLowerCase();
+      if (alignment) {
+        pendingAlignment = alignment as TextAlignment;
         continue;
       }
-
-      if (isColumnBreakDirective(node.value)) {
-        currentSlide.elements.push({
-          type: "columnBreak",
+      const columns = Number(directive.match(DIRECTIVE_GRID)?.[1]);
+      if (columns >= 1 && columns <= 6) {
+        current.gridColumns = columns;
+        continue;
+      }
+      const spacingMatch = directive.match(DIRECTIVE_SPACING);
+      if (spacingMatch) {
+        addElement({
+          type: "spacing",
+          amount: Math.min(Number(spacingMatch[1]), 240),
         });
-
         continue;
       }
-    }
-
-    const element = parseElement(node);
-
-    if (element) {
-      const alignedElement = applyTextAlignment(element, pendingTextAlignment);
-
-      currentSlide.elements.push(alignedElement);
-
-      /*
-       * 配置指定は直後の対応要素にだけ適用します。
-       */
-      if (
-        element.type === "subtitle" ||
-        element.type === "contentHeading" ||
-        element.type === "paragraph" ||
-        element.type === "quote"
-      ) {
-        pendingTextAlignment = null;
+      if (DIRECTIVE_COLUMN.test(directive)) {
+        addElement({ type: "columnBreak" });
+        continue;
       }
+      const icon = directive.match(DIRECTIVE_ICON)?.[1];
+      if (icon) {
+        addElement({ type: "icon", name: icon });
+        continue;
+      }
+      continue;
+    }
+    if (cardNodes) {
+      cardNodes.push(node);
+      continue;
+    }
+    const element = parseNode(node);
+    if (element) addElement(element);
+  }
+  if (sawContent || slides.length === 0) slides.push(current);
+  return slides;
+}
+
+/** カラム区切りがある場合は優先し、ない場合は要素数で均等分配する。 */
+export function splitSlideColumns(slide: SlideData): SlideElement[][] {
+  const count = Math.max(1, Math.min(6, slide.gridColumns));
+  const parts: SlideElement[][] = [[]];
+  let hasExplicitBreak = false;
+  for (const element of slide.elements) {
+    if (element.type === "columnBreak") {
+      hasExplicitBreak = true;
+      parts.push([]);
+    } else {
+      parts[parts.length - 1].push(element);
     }
   }
+  if (count === 1)
+    return [slide.elements.filter((element) => element.type !== "columnBreak")];
+  if (hasExplicitBreak)
+    return Array.from({ length: count }, (_, index) => parts[index] ?? []);
+  const elements = parts[0];
+  const perColumn = Math.ceil(elements.length / count);
+  return Array.from({ length: count }, (_, index) =>
+    elements.slice(index * perColumn, (index + 1) * perColumn),
+  );
+}
 
-  if (currentSlide) {
-    slides.push(currentSlide);
+/** テキストエディタでのカーソル位置に対応するスライド番号（0始まり）。 */
+export function slideIndexAtCursor(markdown: string, cursor: number): number {
+  const preceding = markdown.slice(0, cursor).split("\n");
+  let count = 0;
+  let fence = false;
+  for (const line of preceding) {
+    if (/^\s*(```|~~~)/.test(line)) fence = !fence;
+    if (!fence && /^#\s+/.test(line)) count += 1;
   }
-
-  return slides;
+  return Math.max(0, count - 1);
 }
