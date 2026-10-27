@@ -160,8 +160,6 @@ export function EditorPage() {
   function startPresentation() {
     setMenuOpen(false);
     setPresentationOpen(true);
-    // ブラウザの全画面APIはユーザーのクリック中に呼び出す必要がある。
-    // 許可されなくてもCSSの全画面オーバーレイで発表は可能。
     if (
       !document.fullscreenElement &&
       document.documentElement.requestFullscreen
