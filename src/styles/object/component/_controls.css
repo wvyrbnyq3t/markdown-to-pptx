@@ -171,7 +171,7 @@
   gap: var(--space-3);
   padding: var(--space-3) var(--space-4);
   background: var(--color-surface);
-  border: var(--border-width) solid var(--color-border);
+  border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
   box-shadow: var(--shadow-md);
   font-weight: 600;
@@ -181,11 +181,9 @@
 }
 .c-toast--error {
   color: var(--color-error);
-  border-color: var(--color-error);
 }
 .c-toast--success {
   color: var(--color-success);
-  border-color: var(--color-success);
 }
 .c-toast--info {
   color: var(--color-brand);

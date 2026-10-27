@@ -240,48 +240,55 @@ export function EditorPage() {
             fontWeight: 700,
           }}
         >
-          <Link to="/guide" onClick={() => setMenuOpen(false)}>
-            使い方を見る
-          </Link>
-          <button
-            className="c-button"
-            onClick={() => fileInputRef.current?.click()}
-          >
-            Markdown読込
-          </button>
-          <button
-            className="c-button"
-            onClick={() =>
-              downloadText(
-                `${sanitizeFilename(filename)}.md`,
-                history.text,
-                "text/markdown;charset=utf-8",
-              )
-            }
-          >
-            Markdown保存
-          </button>{" "}
-          <button
-            className="c-button"
-            onClick={startPresentation}
-            aria-label="発表モードを開始"
-          >
-            <span>発表</span>
-          </button>
-          <button
-            className="c-button"
-            aria-label="スライドの設定"
-            onClick={() => setSettingsOpen(true)}
-          >
-            <span>設定</span>
-          </button>
-          <button
-            className="c-button"
-            onClick={() => void exportPowerPoint()}
-            disabled={exporting}
-          >
-            {exporting ? "出力中…" : "PPTX出力"}
-          </button>
+          <div>
+            <button
+              className="c-button"
+              onClick={() => fileInputRef.current?.click()}
+            >
+              Markdown読込
+            </button>
+            <button
+              className="c-button"
+              onClick={() =>
+                downloadText(
+                  `${sanitizeFilename(filename)}.md`,
+                  history.text,
+                  "text/markdown;charset=utf-8",
+                )
+              }
+            >
+              Markdown保存
+            </button>
+            <button
+              className="c-button"
+              onClick={() => void exportPowerPoint()}
+              disabled={exporting}
+            >
+              {exporting ? "出力中…" : "PPTX出力"}
+            </button>
+          </div>
+          <div>
+            <button
+              className="c-button"
+              onClick={startPresentation}
+              aria-label="発表モードを開始"
+            >
+              <span>発表をはじめる</span>
+            </button>
+            <button
+              className="c-button"
+              aria-label="スライドの設定"
+              onClick={() => setSettingsOpen(true)}
+            >
+              <span>スライド設定</span>
+            </button>
+          </div>
+          <div>
+            <Link to="/guide" onClick={() => setMenuOpen(false)}>
+              使い方を見る
+            </Link>
+            <Link to="/account">アカウント設定</Link>
+          </div>
         </nav>
       )}
       <div

@@ -1,22 +1,29 @@
 import { Link } from "react-router-dom";
-import {
-  Download,
-  Eye,
-  FileCode2,
-  LayoutTemplate,
-} from "lucide-react";
+import { Download, Eye, FileCode2, LayoutTemplate } from "lucide-react";
+
+import { signInWithGoogle } from "@/features/auth/api/auth";
+import { useUserAuth } from "@/hooks/auth/useUserAuth";
 
 export function HomePage() {
+  const { isSignIn } = useUserAuth();
+
   return (
     <div className="l-app">
       <header className="l-header">
         <nav className="l-header__actions">
-          <Link to="/guide" className="c-button c-button--subtle">
-            使い方
-          </Link>
-          <Link to="/editor" className="c-button c-button--primary">
-            スライドを作る
-          </Link>
+          {isSignIn ? (
+            <Link to="/account" className="c-button c-button--subtle">
+              アカウント設定
+            </Link>
+          ) : (
+            <button
+              type="button"
+              className="c-button c-button--subtle"
+              onClick={async () => await signInWithGoogle()}
+            >
+              Googleアカウントでサインインする
+            </button>
+          )}
         </nav>
       </header>
       <main className="p-home">

@@ -124,13 +124,23 @@
   right: var(--space-4);
   top: var(--header-height);
   display: flex;
+  gap: var(--space-2);
   flex-direction: column;
   min-width: 230px;
-  padding: var(--space-2);
   background: var(--color-surface);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
   box-shadow: var(--shadow-md);
+  padding-inline: var(--space-2);
+  padding-block: var(--space-1);
+
+  > div {
+    padding-block: var(--space-1);
+
+    &:not(:last-child) {
+      border-bottom: 1px solid var(--color-border);
+    }
+  }
 }
 .p-editor__menu a,
 .p-editor__menu button {
