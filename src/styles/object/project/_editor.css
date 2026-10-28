@@ -112,9 +112,7 @@
   text-overflow: ellipsis;
 }
 .p-editor__slide-item .c-slide-preview {
-  border-radius: var(--radius-sm);
   overflow: hidden;
-  box-shadow: var(--shadow-slide);
   border: 1px solid var(--color-border);
   background: var(--color-slide-paper);
 }

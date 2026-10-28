@@ -73,12 +73,13 @@ export function LogoSettingsFields({ value, onChange, onError }: Props) {
         <label className="c-field">
           <span>横幅（px）</span>
           <input
-            type="number"
+            type="text"
             min={16}
             max={320}
             value={value.size}
             onChange={(event) => {
-              const size = event.target.valueAsNumber;
+              if (!/^\d*$/.test(event.target.value)) return;
+              const size = Number(event.target.value);
               if (Number.isFinite(size))
                 onChange({ ...value, size: Math.min(320, Math.max(16, size)) });
             }}
@@ -97,7 +98,11 @@ export function LogoSettingsFields({ value, onChange, onError }: Props) {
           />
         </label>
       </div>
-      <p>
+      <p
+        style={{
+          fontSize: ".875em",
+        }}
+      >
         端からの距離はスライドの余白と同じです。縦横比を保ち、高さは最大200pxに収めます。
       </p>
       {loading && <p role="status">ロゴを読み込み中…</p>}

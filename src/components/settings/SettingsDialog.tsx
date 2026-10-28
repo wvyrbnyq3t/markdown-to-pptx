@@ -1,6 +1,6 @@
 import { LogoSettingsFields } from "./LogoSettingsFields";
 import { useRef } from "react";
-import { Download, RotateCcw, Upload, X } from "lucide-react";
+import { Download, Upload, X } from "lucide-react";
 import type { PresentationSettings } from "../../types/settings";
 import { DEFAULT_SETTINGS } from "../../types/settings";
 import { downloadText, readTextFile } from "../../lib/files";
@@ -96,25 +96,27 @@ export function SettingsDialog({
               <label className="c-field">
                 <span>スライドの余白（px）</span>
                 <input
-                  type="number"
+                  type="text"
                   min={0}
                   max={200}
                   value={settings.margin}
-                  onChange={(e) =>
-                    onChange({ ...settings, margin: Number(e.target.value) })
-                  }
+                  onChange={(e) => {
+                    if (!/^\d*$/.test(e.target.value)) return;
+                    onChange({ ...settings, margin: Number(e.target.value) });
+                  }}
                 />
               </label>
               <label className="c-field">
                 <span>要素の間隔（px）</span>
                 <input
-                  type="number"
+                  type="text"
                   min={0}
                   max={80}
                   value={settings.gap}
-                  onChange={(e) =>
-                    onChange({ ...settings, gap: Number(e.target.value) })
-                  }
+                  onChange={(e) => {
+                    if (!/^\d*$/.test(e.target.value)) return;
+                    onChange({ ...settings, gap: Number(e.target.value) });
+                  }}
                 />
               </label>
             </div>
@@ -126,11 +128,14 @@ export function SettingsDialog({
                 <label className="c-field" key={key}>
                   <span>{FONT_LABELS[key]}</span>
                   <input
-                    type="number"
+                    type="text"
                     min={10}
                     max={180}
                     value={settings.fontSize[key]}
-                    onChange={(e) => updateFont(key, Number(e.target.value))}
+                    onChange={(e) => {
+                      if (!/^\d*$/.test(e.target.value)) return;
+                      updateFont(key, Number(e.target.value));
+                    }}
                   />
                 </label>
               ))}
@@ -195,11 +200,12 @@ export function SettingsDialog({
               <label className="c-field">
                 <span>文字サイズ（px）</span>
                 <input
-                  type="number"
+                  type="text"
                   min={20}
                   max={180}
                   value={settings.pageTitle.title.fontSize}
-                  onChange={(e) =>
+                  onChange={(e) => {
+                    if (!/^\d*$/.test(e.target.value)) return;
                     onChange({
                       ...settings,
                       pageTitle: {
@@ -209,8 +215,8 @@ export function SettingsDialog({
                           fontSize: Number(e.target.value),
                         },
                       },
-                    })
-                  }
+                    });
+                  }}
                 />
               </label>
               <label className="c-field">
@@ -235,11 +241,12 @@ export function SettingsDialog({
               <label className="c-field">
                 <span>文字サイズ（px）</span>
                 <input
-                  type="number"
+                  type="text"
                   min={12}
                   max={140}
                   value={settings.pageTitle.subTitle.fontSize}
-                  onChange={(e) =>
+                  onChange={(e) => {
+                    if (!/^\d*$/.test(e.target.value)) return;
                     onChange({
                       ...settings,
                       pageTitle: {
@@ -249,8 +256,8 @@ export function SettingsDialog({
                           fontSize: Number(e.target.value),
                         },
                       },
-                    })
-                  }
+                    });
+                  }}
                 />
               </label>
             </div>
@@ -282,19 +289,20 @@ export function SettingsDialog({
               <label className="c-field">
                 <span>文字サイズ（px）</span>
                 <input
-                  type="number"
+                  type="text"
                   min={8}
                   max={48}
                   value={settings.pageNumber.fontSize}
-                  onChange={(e) =>
+                  onChange={(e) => {
+                    if (!/^\d*$/.test(e.target.value)) return;
                     onChange({
                       ...settings,
                       pageNumber: {
                         ...settings.pageNumber,
                         fontSize: Number(e.target.value),
                       },
-                    })
-                  }
+                    });
+                  }}
                 />
               </label>
             </div>
@@ -315,7 +323,6 @@ export function SettingsDialog({
               onNotify("設定を初期化しました。", "success");
             }}
           >
-            <RotateCcw size={16} />
             初期化
           </button>
           <button
@@ -323,7 +330,7 @@ export function SettingsDialog({
             onClick={() => inputRef.current?.click()}
           >
             <Upload size={16} />
-            JSON読込
+            JSON読み込み
           </button>
           <button
             className="c-button c-button--subtle"
@@ -337,7 +344,7 @@ export function SettingsDialog({
             }}
           >
             <Download size={16} />
-            JSON保存
+            設定をJSONで保存
           </button>
           <button className="c-button c-button--primary" onClick={onClose}>
             完了
