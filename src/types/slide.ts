@@ -36,6 +36,7 @@ export type SlideElement =
   | { type: "list"; lines: ListLine[] }
   | { type: "quote"; runs: TextRun[]; align?: TextAlignment }
   | { type: "code"; code: string; language?: string }
+  | { type: "image"; assetId: string; alt: string; align?: TextAlignment }
   | { type: "math"; latex: string; inline?: boolean; align?: TextAlignment }
   | { type: "table"; table: TableData }
   | { type: "icon"; name: string; align?: TextAlignment }

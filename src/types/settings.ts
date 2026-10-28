@@ -1,4 +1,7 @@
+import { DEFAULT_LOGO, type LogoSettings } from "../features/logo/logo";
+
 export interface PresentationSettings {
+  logo: LogoSettings;
   margin: number;
   gap: number;
   fontSize: {
@@ -24,6 +27,7 @@ export interface PresentationSettings {
 }
 
 export const DEFAULT_SETTINGS: PresentationSettings = {
+  logo: { ...DEFAULT_LOGO },
   margin: 64,
   gap: 8,
   fontSize: { title: 56, subTitle: 40, text: 40, code: 26, formula: 48 },

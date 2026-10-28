@@ -1,3 +1,4 @@
+import { pngDimensions } from "../features/logo/logo";
 import { DEFAULT_SETTINGS, type PresentationSettings } from "../types/settings";
 
 function record(value: unknown): Record<string, unknown> {
@@ -28,6 +29,7 @@ export function normalizeSettings(raw: unknown): PresentationSettings {
     throw new Error("設定JSONの最上位はオブジェクトにしてください。");
   }
   const root = record(raw);
+  const logo = record(root.logo);
   const fonts = record(root.fontSize);
   const colors = record(root.color);
   const pageNumber = record(root.pageNumber);
@@ -37,6 +39,13 @@ export function normalizeSettings(raw: unknown): PresentationSettings {
   const defaults = DEFAULT_SETTINGS;
 
   return {
+    logo: {
+      isEnabled: typeof logo.isEnabled === "boolean" ? logo.isEnabled : false,
+      position: logo.position === "left" ? "left" : "right",
+      size: numberInRange(logo.size, defaults.logo.size, 16, 320),
+      dataUrl: pngDimensions(logo.dataUrl) ? logo.dataUrl as string : "",
+      fileName: content(logo.fileName, ""),
+    },
     margin: numberInRange(root.margin, defaults.margin, 0, 200),
     gap: numberInRange(root.gap, defaults.gap, 0, 80),
     fontSize: {

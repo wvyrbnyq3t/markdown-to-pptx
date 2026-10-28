@@ -1,3 +1,4 @@
+import { LogoSettingsFields } from "./LogoSettingsFields";
 import { useRef } from "react";
 import { Download, RotateCcw, Upload, X } from "lucide-react";
 import type { PresentationSettings } from "../../types/settings";
@@ -254,6 +255,11 @@ export function SettingsDialog({
               </label>
             </div>
           </section>
+          <LogoSettingsFields
+            value={settings.logo}
+            onChange={(logo) => onChange({ ...settings, logo })}
+            onError={(message) => onNotify(message, "error")}
+          />
           <section className="p-settings__section">
             <h3>ページ番号</h3>
             <label className="c-check">

@@ -6,6 +6,8 @@ interface Props {
   open: boolean;
   onClose: () => void;
   onInsert: (item: InsertDefinition) => void;
+  onInsertImage: () => void;
+  imageBusy: boolean;
 }
 
 const CATEGORIES = [
@@ -15,7 +17,7 @@ const CATEGORIES = [
   { id: "elements", label: "コンテンツ" },
 ] as const;
 
-export function InsertSheet({ open, onClose, onInsert }: Props) {
+export function InsertSheet({ open, onClose, onInsert, onInsertImage, imageBusy }: Props) {
   const [category, setCategory] = useState<InsertDefinition["category"]>("text");
   if (!open) return null;
   return <div className="c-overlay" onMouseDown={(event) => { if (event.target === event.currentTarget) onClose(); }}>
@@ -25,6 +27,7 @@ export function InsertSheet({ open, onClose, onInsert }: Props) {
         {CATEGORIES.map((item) => <button key={item.id} role="tab" aria-selected={category === item.id} className={`c-tab ${category === item.id ? "c-tab--active" : ""}`} onClick={() => setCategory(item.id)}>{item.label}</button>)}
       </div>
       <div className="p-insert-sheet__grid">
+        {category === "elements" && <button className="p-insert-sheet__option" onClick={onInsertImage} disabled={imageBusy}><strong>画像</strong><span>端末のPNG・JPEG・WebPを挿入</span></button>}
         {INSERT_DEFINITIONS.filter((item) => item.category === category).map((item) => <button className="p-insert-sheet__option" key={item.id} onClick={() => onInsert(item)}><strong>{item.label}</strong><span>{item.description}</span></button>)}
       </div>
     </section>

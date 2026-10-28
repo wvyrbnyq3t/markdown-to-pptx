@@ -2,13 +2,9 @@ import { unified } from "unified";
 import remarkParse from "remark-parse";
 import remarkGfm from "remark-gfm";
 import remarkMath from "remark-math";
+import { createImageMarkdown, imageIdFromSource } from "../images/imageReferences";
 import type {
-  ListLine,
-  SlideData,
-  SlideElement,
-  TableCell,
-  TextAlignment,
-  TextRun,
+  ListLine, SlideData, SlideElement, TableCell, TextAlignment, TextRun,
 } from "../../types/slide";
 
 /** mdastの必要なフィールドだけを参照する、読み取り専用の内部型。 */
@@ -21,6 +17,8 @@ interface MarkdownNode {
   start?: number;
   lang?: string;
   url?: string;
+  alt?: string;
+  position?: { start: { offset?: number }; end: { offset?: number } };
   align?: Array<"left" | "center" | "right" | null>;
 }
 
@@ -34,16 +32,9 @@ function plainText(node: MarkdownNode): string {
 function addRun(runs: TextRun[], run: TextRun): void {
   if (!run.text) return;
   const previous = runs[runs.length - 1];
-  if (
-    previous &&
-    previous.bold === run.bold &&
-    previous.italic === run.italic &&
-    previous.strike === run.strike &&
-    previous.code === run.code &&
-    previous.math === run.math &&
-    previous.link === run.link &&
-    previous.color === run.color
-  ) {
+  if (previous && previous.bold === run.bold && previous.italic === run.italic &&
+      previous.strike === run.strike && previous.code === run.code &&
+      previous.math === run.math && previous.link === run.link && previous.color === run.color) {
     previous.text += run.text;
   } else {
     runs.push(run);
@@ -51,28 +42,16 @@ function addRun(runs: TextRun[], run: TextRun): void {
 }
 
 /** ASTのインライン要素を、PPTXでも利用できるテキストランへ変換する。 */
-function parseInline(
-  nodes: MarkdownNode[],
-  style: Omit<TextRun, "text"> = {},
-): TextRun[] {
+function parseInline(nodes: MarkdownNode[], style: Omit<TextRun, "text"> = {}): TextRun[] {
   const result: TextRun[] = [];
   for (const node of nodes) {
     if (node.type === "text" || node.type === "inlineCode") {
-      addRun(result, {
-        ...style,
-        text: node.value ?? "",
-        code: style.code || node.type === "inlineCode",
-      });
+      addRun(result, { ...style, text: node.value ?? "", code: style.code || node.type === "inlineCode" });
     } else if (node.type === "inlineMath") {
       addRun(result, { ...style, text: node.value ?? "", math: true });
     } else if (node.type === "break") {
       addRun(result, { ...style, text: "\n" });
-    } else if (
-      node.type === "strong" ||
-      node.type === "emphasis" ||
-      node.type === "delete" ||
-      node.type === "link"
-    ) {
+    } else if (node.type === "strong" || node.type === "emphasis" || node.type === "delete" || node.type === "link") {
       const nextStyle = {
         ...style,
         ...(node.type === "strong" ? { bold: true } : {}),
@@ -80,11 +59,9 @@ function parseInline(
         ...(node.type === "delete" ? { strike: true } : {}),
         ...(node.type === "link" ? { link: node.url } : {}),
       };
-      for (const nested of parseInline(node.children ?? [], nextStyle))
-        addRun(result, nested);
+      for (const nested of parseInline(node.children ?? [], nextStyle)) addRun(result, nested);
     } else if (node.children) {
-      for (const nested of parseInline(node.children, style))
-        addRun(result, nested);
+      for (const nested of parseInline(node.children, style)) addRun(result, nested);
     }
     // 未対応のHTMLタグなどは出力しない。任意のHTMLは描画しない。
   }
@@ -96,18 +73,9 @@ function flattenList(node: MarkdownNode, depth = 0): ListLine[] {
   const ordered = Boolean(node.ordered);
   let number = node.start ?? 1;
   for (const item of node.children ?? []) {
-    const contentNodes = (item.children ?? []).filter(
-      (child) => child.type !== "list",
-    );
-    const textNodes = contentNodes.flatMap(
-      (child) => child.children ?? (child.type === "text" ? [child] : []),
-    );
-    lines.push({
-      runs: parseInline(textNodes),
-      depth: Math.min(depth, 4),
-      ordered,
-      number: ordered ? number : undefined,
-    });
+    const contentNodes = (item.children ?? []).filter((child) => child.type !== "list");
+    const textNodes = contentNodes.flatMap((child) => child.children ?? (child.type === "text" ? [child] : []));
+    lines.push({ runs: parseInline(textNodes), depth: Math.min(depth, 4), ordered, number: ordered ? number : undefined });
     number += 1;
     for (const child of item.children ?? []) {
       if (child.type === "list") lines.push(...flattenList(child, depth + 1));
@@ -120,22 +88,34 @@ function tableCell(node: MarkdownNode): TableCell {
   return { runs: parseInline(node.children ?? []) };
 }
 
+/** 画像の前後に文章があっても失わないよう、段落を文章・画像の順に分ける。 */
+function parseParagraph(node: MarkdownNode): SlideElement[] {
+  const elements: SlideElement[] = [];
+  let textNodes: MarkdownNode[] = [];
+  function flushText() {
+    const runs = parseInline(textNodes);
+    if (runs.some((run) => run.text.trim())) elements.push({ type: "paragraph", runs });
+    textNodes = [];
+  }
+  for (const child of node.children ?? []) {
+    if (child.type !== "image") { textNodes.push(child); continue; }
+    const assetId = imageIdFromSource(child.url ?? "");
+    if (!assetId) continue;
+    flushText();
+    elements.push({ type: "image", assetId, alt: child.alt ?? "" });
+  }
+  flushText();
+  return elements;
+}
+
 function parseNode(node: MarkdownNode): SlideElement | null {
   switch (node.type) {
     case "heading":
       return node.depth === 2
         ? { type: "subtitle", text: plainText(node) }
         : node.depth && node.depth >= 3 && node.depth <= 6
-          ? {
-              type: "heading",
-              level: node.depth as 3 | 4 | 5 | 6,
-              text: plainText(node),
-            }
+          ? { type: "heading", level: node.depth as 3 | 4 | 5 | 6, text: plainText(node) }
           : null;
-    case "paragraph": {
-      const runs = parseInline(node.children ?? []);
-      return runs.length ? { type: "paragraph", runs } : null;
-    }
     case "blockquote": {
       const runs: TextRun[] = [];
       for (const [index, child] of (node.children ?? []).entries()) {
@@ -144,16 +124,11 @@ function parseNode(node: MarkdownNode): SlideElement | null {
       }
       return { type: "quote", runs };
     }
-    case "list":
-      return { type: "list", lines: flattenList(node) };
-    case "code":
-      return { type: "code", code: node.value ?? "", language: node.lang };
-    case "math":
-      return { type: "math", latex: node.value ?? "" };
+    case "list": return { type: "list", lines: flattenList(node) };
+    case "code": return { type: "code", code: node.value ?? "", language: node.lang };
+    case "math": return { type: "math", latex: node.value ?? "" };
     case "table": {
-      const rows = (node.children ?? []).map((row) =>
-        (row.children ?? []).map(tableCell),
-      );
+      const rows = (node.children ?? []).map((row) => (row.children ?? []).map(tableCell));
       return {
         type: "table",
         table: {
@@ -163,8 +138,7 @@ function parseNode(node: MarkdownNode): SlideElement | null {
         },
       };
     }
-    default:
-      return null;
+    default: return null;
   }
 }
 
@@ -176,44 +150,22 @@ const DIRECTIVE_COLUMN = /^<!--\s*(?:column|column-break)\s*-->$/i;
 const DIRECTIVE_CARD_START = /^<!--\s*card:start\s*-->$/i;
 const DIRECTIVE_CARD_END = /^<!--\s*card:end\s*-->$/i;
 
-function isAlignable(
-  element: SlideElement,
-): element is Extract<SlideElement, { align?: TextAlignment }> {
-  return [
-    "subtitle",
-    "heading",
-    "paragraph",
-    "quote",
-    "math",
-    "icon",
-    "card",
-  ].includes(element.type);
+function isAlignable(element: SlideElement): element is Extract<SlideElement, { align?: TextAlignment }> {
+  return ["subtitle", "heading", "paragraph", "quote", "math", "icon", "card", "image"].includes(element.type);
 }
 
 /** HTMLコメントを命令として扱う。任意のHTMLは無視し、XSSを避ける。 */
 export function parseMarkdown(markdown: string): SlideData[] {
-  const tree = processor.parse(markdown) as unknown as {
-    children: MarkdownNode[];
-  };
+  const tree = processor.parse(markdown) as unknown as { children: MarkdownNode[] };
   const slides: SlideData[] = [];
-  let current: SlideData = {
-    id: "slide-1",
-    title: "スライド 1",
-    gridColumns: 1,
-    elements: [],
-  };
+  let current: SlideData = { id: "slide-1", title: "スライド 1", gridColumns: 1, elements: [] };
   let pendingAlignment: TextAlignment | null = null;
   let cardNodes: MarkdownNode[] | null = null;
   let sawContent = false;
 
   function pushSlide(): void {
     slides.push(current);
-    current = {
-      id: `slide-${slides.length + 1}`,
-      title: `スライド ${slides.length + 1}`,
-      gridColumns: 1,
-      elements: [],
-    };
+    current = { id: `slide-${slides.length + 1}`, title: `スライド ${slides.length + 1}`, gridColumns: 1, elements: [] };
     pendingAlignment = null;
     cardNodes = null;
     sawContent = false;
@@ -231,8 +183,7 @@ export function parseMarkdown(markdown: string): SlideData[] {
 
   for (const node of tree.children) {
     if (node.type === "heading" && node.depth === 1) {
-      if (sawContent || slides.length > 0 || current.title !== "スライド 1")
-        pushSlide();
+      if (sawContent || slides.length > 0 || current.title !== "スライド 1") pushSlide();
       current.title = plainText(node).trim() || `スライド ${slides.length + 1}`;
       sawContent = true;
       pendingAlignment = null;
@@ -241,10 +192,7 @@ export function parseMarkdown(markdown: string): SlideData[] {
 
     if (node.type === "html") {
       const directive = (node.value ?? "").trim();
-      if (DIRECTIVE_CARD_START.test(directive)) {
-        cardNodes = [];
-        continue;
-      }
+      if (DIRECTIVE_CARD_START.test(directive)) { cardNodes = []; continue; }
       if (DIRECTIVE_CARD_END.test(directive)) {
         if (cardNodes !== null) {
           const runs: TextRun[] = [];
@@ -257,39 +205,20 @@ export function parseMarkdown(markdown: string): SlideData[] {
         }
         continue;
       }
-      const alignment = directive
-        .match(DIRECTIVE_ALIGNMENT)?.[1]
-        ?.toLowerCase();
-      if (alignment) {
-        pendingAlignment = alignment as TextAlignment;
-        continue;
-      }
+      const alignment = directive.match(DIRECTIVE_ALIGNMENT)?.[1]?.toLowerCase();
+      if (alignment) { pendingAlignment = alignment as TextAlignment; continue; }
       const columns = Number(directive.match(DIRECTIVE_GRID)?.[1]);
-      if (columns >= 1 && columns <= 6) {
-        current.gridColumns = columns;
-        continue;
-      }
+      if (columns >= 1 && columns <= 6) { current.gridColumns = columns; continue; }
       const spacingMatch = directive.match(DIRECTIVE_SPACING);
-      if (spacingMatch) {
-        addElement({
-          type: "spacing",
-          amount: Math.min(Number(spacingMatch[1]), 240),
-        });
-        continue;
-      }
-      if (DIRECTIVE_COLUMN.test(directive)) {
-        addElement({ type: "columnBreak" });
-        continue;
-      }
+      if (spacingMatch) { addElement({ type: "spacing", amount: Math.min(Number(spacingMatch[1]), 240) }); continue; }
+      if (DIRECTIVE_COLUMN.test(directive)) { addElement({ type: "columnBreak" }); continue; }
       const icon = directive.match(DIRECTIVE_ICON)?.[1];
-      if (icon) {
-        addElement({ type: "icon", name: icon });
-        continue;
-      }
+      if (icon) { addElement({ type: "icon", name: icon }); continue; }
       continue;
     }
-    if (cardNodes) {
-      cardNodes.push(node);
+    if (cardNodes) { cardNodes.push(node); continue; }
+    if (node.type === "paragraph") {
+      for (const element of parseParagraph(node)) addElement(element);
       continue;
     }
     const element = parseNode(node);
@@ -297,6 +226,32 @@ export function parseMarkdown(markdown: string): SlideData[] {
   }
   if (sawContent || slides.length === 0) slides.push(current);
   return slides;
+}
+
+export function referencedImageIds(slides: SlideData[]): string[] {
+  return [...new Set(slides.flatMap((slide) => slide.elements.flatMap((element) => element.type === "image" ? [element.assetId] : [])))];
+}
+
+/** ZIPの読み込み時だけIDを振り直す。コード例や本文中の同じ文字列には触れない。 */
+export function remapImageReferences(markdown: string, idMap: ReadonlyMap<string, string>): string {
+  const tree = processor.parse(markdown) as unknown as MarkdownNode;
+  const replacements: Array<{ start: number; end: number; text: string }> = [];
+  function visit(node: MarkdownNode) {
+    const id = node.type === "image" ? imageIdFromSource(node.url ?? "") : null;
+    const nextId = id ? idMap.get(id) : undefined;
+    const start = node.position?.start.offset;
+    const end = node.position?.end.offset;
+    if (nextId && start !== undefined && end !== undefined) {
+      replacements.push({ start, end, text: createImageMarkdown(nextId, node.alt ?? "") });
+    }
+    for (const child of node.children ?? []) visit(child);
+  }
+  visit(tree);
+  let result = markdown;
+  for (const replacement of replacements.sort((a, b) => b.start - a.start)) {
+    result = result.slice(0, replacement.start) + replacement.text + result.slice(replacement.end);
+  }
+  return result;
 }
 
 /** カラム区切りがある場合は優先し、ない場合は要素数で均等分配する。 */
@@ -312,15 +267,11 @@ export function splitSlideColumns(slide: SlideData): SlideElement[][] {
       parts[parts.length - 1].push(element);
     }
   }
-  if (count === 1)
-    return [slide.elements.filter((element) => element.type !== "columnBreak")];
-  if (hasExplicitBreak)
-    return Array.from({ length: count }, (_, index) => parts[index] ?? []);
+  if (count === 1) return [slide.elements.filter((element) => element.type !== "columnBreak")];
+  if (hasExplicitBreak) return Array.from({ length: count }, (_, index) => parts[index] ?? []);
   const elements = parts[0];
   const perColumn = Math.ceil(elements.length / count);
-  return Array.from({ length: count }, (_, index) =>
-    elements.slice(index * perColumn, (index + 1) * perColumn),
-  );
+  return Array.from({ length: count }, (_, index) => elements.slice(index * perColumn, (index + 1) * perColumn));
 }
 
 /** テキストエディタでのカーソル位置に対応するスライド番号（0始まり）。 */

@@ -1,3 +1,4 @@
+import { logoLayout } from "../logo/logo";
 import pptxgen from "pptxgenjs";
 import type { PresentationSettings } from "../../types/settings";
 import type {
@@ -8,7 +9,14 @@ import type {
   TextRun,
 } from "../../types/slide";
 import { SLIDE_WIDTH, SLIDE_HEIGHT } from "../../types/slide";
-import { splitSlideColumns } from "../markdown/parseMarkdown";
+import {
+  referencedImageIds,
+  splitSlideColumns,
+} from "../markdown/parseMarkdown";
+import type { ImageAsset } from "../../types/image";
+import { getImageAsset } from "../images/imageStore";
+import { imageToPptxData } from "../images/imageFiles";
+import { imageDisplaySize } from "../images/imageLayout";
 import { sanitizeFilename } from "../../lib/files";
 import { ICON_SYMBOLS } from "../../lib/iconSymbols";
 import { contrastTextColor } from "../../lib/color";
@@ -16,6 +24,9 @@ import { mathToSvgData } from "./mathToSvg";
 
 const PIXELS_PER_INCH = 96;
 const FONT_FACE = "Yu Gothic";
+const CODE_FONT_FACE = "Consolas";
+type PptxImage = Pick<ImageAsset, "width" | "height"> & { data: string };
+type PptxImages = ReadonlyMap<string, PptxImage>;
 const pxToIn = (value: number) => value / PIXELS_PER_INCH;
 const pxToPt = (value: number) => value * 0.75;
 const pptColor = (value: string) => value.replace("#", "");
@@ -39,6 +50,7 @@ function estimateHeight(
   element: SlideElement,
   columnWidth: number,
   settings: PresentationSettings,
+  images: PptxImages,
 ): number {
   const body = settings.fontSize.text;
   switch (element.type) {
@@ -81,6 +93,14 @@ function estimateHeight(
           lineHeight(settings.fontSize.code) +
         24
       );
+    case "image": {
+      const image = images.get(element.assetId);
+      if (!image)
+        throw new Error(
+          `画像「${element.alt || element.assetId}」が見つかりません。画像を再挿入してください。`,
+        );
+      return imageDisplaySize(image, columnWidth).height;
+    }
     case "math":
       return settings.fontSize.formula * 1.65;
     case "table":
@@ -116,6 +136,7 @@ function drawText(
     italic?: boolean;
     align?: TextAlignment;
     breakLine?: boolean;
+    fontFace?: string;
   } = {},
 ): void {
   const runs =
@@ -140,13 +161,14 @@ function drawText(
     w: pxToIn(width),
     h: pxToIn(height),
     margin: 0,
-    fontFace: FONT_FACE,
+    fontFace: options.fontFace ?? FONT_FACE,
     fontSize: pxToPt(sizePx),
     color: pptColor(color),
     bold: options.bold,
     italic: options.italic,
     align: options.align ?? "left",
-    // valign: "mid",
+    valign: "middle",
+    lang: "ja-JP",
     breakLine: options.breakLine,
     // はみ出しを防ぐため、テキストが長い場合は自動縮小する。
     fit: "shrink",
@@ -196,8 +218,9 @@ function drawElement(
   y: number,
   w: number,
   settings: PresentationSettings,
+  images: PptxImages,
 ): number {
-  const height = estimateHeight(element, w, settings);
+  const height = estimateHeight(element, w, settings, images);
   const body = settings.fontSize.text;
   const text = settings.color.text;
   const accent = settings.color.accent;
@@ -297,7 +320,27 @@ function drawElement(
         height - 24,
         settings.fontSize.code,
         "334155",
+        { fontFace: CODE_FONT_FACE },
       );
+      break;
+    }
+    case "image": {
+      const image = images.get(element.assetId)!;
+      const size = imageDisplaySize(image, w);
+      const offsetX =
+        align === "right"
+          ? w - size.width
+          : align === "center"
+            ? (w - size.width) / 2
+            : 0;
+      slide.addImage({
+        data: image.data,
+        altText: element.alt,
+        x: pxToIn(x + offsetX),
+        y: pxToIn(y),
+        w: pxToIn(size.width),
+        h: pxToIn(size.height),
+      });
       break;
     }
     case "math": {
@@ -443,6 +486,20 @@ export async function generatePptx(
   settings: PresentationSettings,
   fileName: string,
 ): Promise<void> {
+  // ブラウザ内の画像を先に取得する。未保存の画像があれば、不完全なPPTXを出力しない。
+  const images = new Map<string, PptxImage>();
+  for (const id of referencedImageIds(slides)) {
+    const image = await getImageAsset(id);
+    if (!image)
+      throw new Error(
+        `画像「${id}」が見つかりません。画像込みZIPを読み込むか、画像を再挿入してください。`,
+      );
+    images.set(id, {
+      width: image.width,
+      height: image.height,
+      data: await imageToPptxData(image.blob),
+    });
+  }
   const pptx = new pptxgen();
   pptx.defineLayout({
     name: "PON_WIDE",
@@ -453,10 +510,7 @@ export async function generatePptx(
   pptx.author = "ポンっ！";
   pptx.subject = "Markdownから生成したプレゼンテーション";
   pptx.title = fileName;
-  pptx.theme = {
-    headFontFace: FONT_FACE,
-    bodyFontFace: FONT_FACE,
-  };
+  pptx.theme = { headFontFace: FONT_FACE, bodyFontFace: FONT_FACE };
 
   if (settings.pageTitle.isEnabled) addCover(pptx, settings);
   const pageOffset = settings.pageTitle.isEnabled ? 1 : 0;
@@ -465,24 +519,32 @@ export async function generatePptx(
     slide.background = { color: "FFFFFF" };
     const margin = settings.margin;
     const titleY = margin;
-    const titleH =
+    const logo = logoLayout(settings);
+    const titleWidth = logo?.titleWidth ?? SLIDE_WIDTH - margin * 2;
+    const textHeight =
       lineHeight(settings.fontSize.title) *
-      estimatedLines(
-        data.title,
-        SLIDE_WIDTH - margin * 2,
-        settings.fontSize.title,
-      );
+      estimatedLines(data.title, titleWidth, settings.fontSize.title);
+    const titleH = Math.max(textHeight, logo?.height ?? 0);
     drawText(
       slide,
       data.title,
-      margin,
+      logo?.titleX ?? margin,
       titleY,
-      SLIDE_WIDTH - margin * 2,
-      titleH,
+      titleWidth,
+      textHeight,
       settings.fontSize.title,
       settings.color.primary,
       { bold: true },
     );
+    if (logo)
+      slide.addImage({
+        data: settings.logo.dataUrl,
+        altText: "ロゴ",
+        x: pxToIn(logo.x),
+        y: pxToIn(logo.y),
+        w: pxToIn(logo.width),
+        h: pxToIn(logo.height),
+      });
     const columns = splitSlideColumns(data);
     const usableW = SLIDE_WIDTH - margin * 2;
     const spacing = settings.gap * 3;
@@ -501,12 +563,12 @@ export async function generatePptx(
           y += element.amount;
           continue;
         }
-        const height = estimateHeight(element, columnWidth, settings);
+        const height = estimateHeight(element, columnWidth, settings, images);
         if (y + height > bodyEnd + 5) {
           // PPTX側では溢れた内容も出力する。事前のプレビューで確認する。
           // 自動改ページは元のスライド区切りを変えるため行わない。
         }
-        drawElement(slide, element, x, y, columnWidth, settings);
+        drawElement(slide, element, x, y, columnWidth, settings, images);
         y += height + settings.gap * 1.8;
       }
     });
