@@ -1,8 +1,8 @@
 .p-settings {
   display: flex;
   flex-direction: column;
-  width: min(100%, 760px);
-  max-height: min(92dvh, 950px);
+  width: 90dvw;
+  max-height: 90dvh;
   border-radius: var(--radius-lg);
   overflow: hidden;
   background: var(--color-surface);

@@ -102,9 +102,6 @@ export function MarkdownEditorPanel({
   return (
     <section className="p-editor__markdown" aria-label="Markdownエディタ">
       <div className="p-editor__pane-header">
-        <strong>
-          <Code2 size={17} /> Markdown
-        </strong>
         <div className="p-editor__pane-actions">
           <button
             type="button"

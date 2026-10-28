@@ -13,7 +13,7 @@ export function HomePage() {
         <nav className="l-header__actions">
           {isSignIn ? (
             <Link to="/account" className="c-button c-button--subtle">
-              アカウント設定
+              マイページ
             </Link>
           ) : (
             <button

@@ -30,7 +30,7 @@ import {
 } from "../lib/storage";
 import { useToast } from "../hooks/useToast";
 import { saveDocument } from "@/features/firebase/firebase";
-
+import { useUserAuth } from "@/hooks/auth/useUserAuth";
 import type { PresentationSettings } from "../types/settings";
 import { Spinner } from "@/components/Spinner";
 
@@ -46,7 +46,9 @@ function initialPanelWidth(): number {
 }
 
 export function EditorPage() {
+  const { isSignIn } = useUserAuth();
   const history = useMarkdownHistory(loadMarkdown());
+
   const [settings, setSettings] = useState<PresentationSettings>(loadSettings);
   const [filename, setFilename] = useState<string>("プレゼンテーション");
   const [settingsOpen, setSettingsOpen] = useState<boolean>(false);
@@ -217,14 +219,14 @@ export function EditorPage() {
             onClick={startPresentation}
             aria-label="発表モードを開始"
           >
-            <span className="l-header__desktop-label">発表を始める</span>
+            <span className="l-header__desktop-label">発表をはじめる</span>
           </button>
           <button
             className="c-button l-header__desktop-button c-button--subtle"
             aria-label="スライドの設定"
             onClick={() => setSettingsOpen(true)}
           >
-            <span className="l-header__desktop-label">設定</span>
+            <span className="l-header__desktop-label">スライド設定</span>
           </button>
           <button
             className="c-icon-button l-header__menu-button"
@@ -270,30 +272,32 @@ export function EditorPage() {
             >
               {exporting ? "出力中…" : "PPTX出力"}
             </button>
-            <button
-              disabled={savingOnFirebase}
-              type="button"
-              className="c-button"
-              onClick={async () => {
-                setSavingOnFirebase(true);
-                try {
-                  await saveDocument({ content: history.text });
-                  notify("オンラインに保存しました。", "success");
-                } catch (err) {
-                  console.error(err);
-                  notify(
-                    err instanceof Error
-                      ? `オンライン保存に失敗しました: ${err.message}`
-                      : "オンライン保存に失敗しました。",
-                    "error",
-                  );
-                } finally {
-                  setSavingOnFirebase(false);
-                }
-              }}
-            >
-              {savingOnFirebase ? <Spinner /> : <span>オンラインに保存</span>}
-            </button>
+            {isSignIn && (
+              <button
+                disabled={savingOnFirebase}
+                type="button"
+                className="c-button"
+                onClick={async () => {
+                  setSavingOnFirebase(true);
+                  try {
+                    await saveDocument({ content: history.text });
+                    notify("オンラインに保存しました。", "success");
+                  } catch (err) {
+                    console.error(err);
+                    notify(
+                      err instanceof Error
+                        ? `オンライン保存に失敗しました: ${err.message}`
+                        : "オンライン保存に失敗しました。",
+                      "error",
+                    );
+                  } finally {
+                    setSavingOnFirebase(false);
+                  }
+                }}
+              >
+                {savingOnFirebase ? <Spinner /> : <span>オンラインに保存</span>}
+              </button>
+            )}
           </div>
           <div>
             <button
