@@ -29,7 +29,10 @@ import {
   saveSettings,
 } from "../lib/storage";
 import { useToast } from "../hooks/useToast";
+import { saveDocument } from "@/features/firebase/firebase";
+
 import type { PresentationSettings } from "../types/settings";
+import { Spinner } from "@/components/Spinner";
 
 const PANEL_WIDTH_KEY = "pon-slide:editor-width:v1";
 
@@ -45,15 +48,16 @@ function initialPanelWidth(): number {
 export function EditorPage() {
   const history = useMarkdownHistory(loadMarkdown());
   const [settings, setSettings] = useState<PresentationSettings>(loadSettings);
-  const [filename, setFilename] = useState("プレゼンテーション");
-  const [settingsOpen, setSettingsOpen] = useState(false);
-  const [presentationOpen, setPresentationOpen] = useState(false);
-  const [insertOpen, setInsertOpen] = useState(false);
-  const [menuOpen, setMenuOpen] = useState(false);
-  const [exporting, setExporting] = useState(false);
+  const [filename, setFilename] = useState<string>("プレゼンテーション");
+  const [settingsOpen, setSettingsOpen] = useState<boolean>(false);
+  const [presentationOpen, setPresentationOpen] = useState<boolean>(false);
+  const [insertOpen, setInsertOpen] = useState<boolean>(false);
+  const [menuOpen, setMenuOpen] = useState<boolean>(false);
+  const [exporting, setExporting] = useState<boolean>(false);
+  const [savingOnFirebase, setSavingOnFirebase] = useState<boolean>(false);
   const [mobilePane, setMobilePane] = useState<"editor" | "preview">("editor");
   const [panelWidth, setPanelWidth] = useState(initialPanelWidth);
-  const [activeSlideIndex, setActiveSlideIndex] = useState(0);
+  const [activeSlideIndex, setActiveSlideIndex] = useState<number>(0);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const selectionRef = useRef({ start: 0, end: 0 });
@@ -266,6 +270,30 @@ export function EditorPage() {
             >
               {exporting ? "出力中…" : "PPTX出力"}
             </button>
+            <button
+              disabled={savingOnFirebase}
+              type="button"
+              className="c-button"
+              onClick={async () => {
+                setSavingOnFirebase(true);
+                try {
+                  await saveDocument({ content: history.text });
+                  notify("オンラインに保存しました。", "success");
+                } catch (err) {
+                  console.error(err);
+                  notify(
+                    err instanceof Error
+                      ? `オンライン保存に失敗しました: ${err.message}`
+                      : "オンライン保存に失敗しました。",
+                    "error",
+                  );
+                } finally {
+                  setSavingOnFirebase(false);
+                }
+              }}
+            >
+              {savingOnFirebase ? <Spinner /> : <span>オンラインに保存</span>}
+            </button>
           </div>
           <div>
             <button
@@ -288,6 +316,7 @@ export function EditorPage() {
               使い方を見る
             </Link>
             <Link to="/account">アカウント設定</Link>
+            <Link to="/">Homeに戻る</Link>
           </div>
         </nav>
       )}

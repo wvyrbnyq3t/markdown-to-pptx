@@ -188,3 +188,24 @@
 .c-toast--info {
   color: var(--color-brand);
 }
+
+.c-spinner {
+  --duration: 1000ms; /* デフォルトの回転時間 */
+  --sz-spinner: 1.25em;
+
+  animation: spinner var(--duration) linear infinite;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: var(--sz-spinner);
+  width: var(--sz-spinner);
+}
+
+@keyframes spinner {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
