@@ -1,5 +1,5 @@
 import type { ChangeEvent, KeyboardEvent, RefObject } from "react";
-import { Code2, Plus, Redo2, Undo2 } from "lucide-react";
+import { Plus, Redo2, Undo2 } from "lucide-react";
 import type { EditorSnapshot } from "../../features/editor/useMarkdownHistory";
 
 interface Props {
