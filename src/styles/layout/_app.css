@@ -1,8 +1,55 @@
-.l-app { display: flex; flex-direction: column; min-height: 100vh; }
-.l-header { z-index: var(--z-header); position: relative; display: flex; align-items: center; justify-content: space-between; gap: var(--space-5); min-height: var(--header-height); padding: var(--space-3) var(--space-6); background: var(--color-surface); border-bottom: var(--border-width) solid var(--color-border); }
-.l-header__brand, .l-header__actions { display: flex; align-items: center; gap: var(--space-3); }
-.l-header__actions { flex-wrap: wrap; justify-content: flex-end; }
-.l-header__subtitle { color: var(--color-text-muted); font-size: var(--font-size-sm); }
-.l-header__menu-button { flex-shrink: 0; }
-@media (max-width: 1080px) { .l-header__desktop-button, .l-header__subtitle, .l-header__desktop-label { display: none !important; } }
-@media (max-width: 680px) { .l-header { padding: var(--space-2) var(--space-3); gap: var(--space-2); } .l-header__actions { gap: var(--space-2); } .l-header__actions .c-field--inline { display: none; } }
+.l-app {
+  display: flex;
+  flex-direction: column;
+  height: 100dvh;
+  overflow-y: auto;
+}
+.l-header {
+  z-index: var(--z-header);
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-5);
+  min-height: var(--header-height);
+  padding: var(--space-3) var(--space-6);
+  background: var(--color-surface);
+  border-bottom: var(--border-width) solid var(--color-border);
+}
+.l-header__brand,
+.l-header__actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+.l-header__actions {
+  flex-wrap: wrap;
+  margin-left: auto;
+  justify-content: flex-end;
+}
+.l-header__subtitle {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}
+.l-header__menu-button {
+  flex-shrink: 0;
+}
+@media (max-width: 1080px) {
+  .l-header__desktop-button,
+  .l-header__subtitle,
+  .l-header__desktop-label {
+    display: none !important;
+  }
+}
+@media (max-width: 680px) {
+  .l-header {
+    padding: var(--space-2) var(--space-3);
+    gap: var(--space-2);
+  }
+  .l-header__actions {
+    gap: var(--space-2);
+  }
+  .l-header__actions .c-field--inline {
+    display: none;
+  }
+}
