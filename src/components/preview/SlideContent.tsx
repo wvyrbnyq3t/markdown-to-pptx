@@ -164,6 +164,7 @@ export function buildSlideCssVars(
   settings: PresentationSettings,
 ): CSSProperties {
   return {
+    "--slide-background": settings.color.background,
     "--slide-primary": settings.color.primary,
     "--slide-secondary": settings.color.secondary,
     "--slide-text": settings.color.text,

@@ -406,7 +406,9 @@ function drawElement(
             cellY,
             cellWidth,
             rowHeight,
-            rowIndex === 0 ? pptColor(settings.color.tableHeader) : "FFFFFF",
+            rowIndex === 0
+              ? pptColor(settings.color.tableHeader)
+              : pptColor(settings.color.background),
             "E2E8F0",
           );
           drawCell(
@@ -463,7 +465,7 @@ function drawElement(
 
 function addCover(pptx: pptxgen, settings: PresentationSettings): void {
   const slide = pptx.addSlide();
-  slide.background = { color: "FFFFFF" };
+  slide.background = { color: pptColor(settings.color.background) };
   drawText(
     slide,
     settings.pageTitle.title.content,
@@ -526,7 +528,7 @@ export async function generatePptx(
   const pageOffset = settings.pageTitle.isEnabled ? 1 : 0;
   slides.forEach((data, index) => {
     const slide = pptx.addSlide();
-    slide.background = { color: "FFFFFF" };
+    slide.background = { color: pptColor(settings.color.background) };
     const margin = settings.margin;
     const titleY = margin;
     const logo = logoLayout(settings);

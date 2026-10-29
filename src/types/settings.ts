@@ -12,6 +12,7 @@ export interface PresentationSettings {
     formula: number;
   };
   color: {
+    background: string;
     primary: string;
     secondary: string;
     text: string;
@@ -32,6 +33,7 @@ export const DEFAULT_SETTINGS: PresentationSettings = {
   gap: 8,
   fontSize: { title: 56, subTitle: 40, text: 40, code: 26, formula: 48 },
   color: {
+    background: "#FFFFFF",
     primary: "#2563EB",
     secondary: "#1E293B",
     text: "#1E293B",

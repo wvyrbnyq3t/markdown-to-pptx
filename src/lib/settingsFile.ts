@@ -7,8 +7,16 @@ function record(value: unknown): Record<string, unknown> {
     : {};
 }
 
-function numberInRange(value: unknown, fallback: number, min: number, max: number): number {
-  return typeof value === "number" && Number.isFinite(value) && value >= min && value <= max
+function numberInRange(
+  value: unknown,
+  fallback: number,
+  min: number,
+  max: number,
+): number {
+  return typeof value === "number" &&
+    Number.isFinite(value) &&
+    value >= min &&
+    value <= max
     ? value
     : fallback;
 }
@@ -43,19 +51,25 @@ export function normalizeSettings(raw: unknown): PresentationSettings {
       isEnabled: typeof logo.isEnabled === "boolean" ? logo.isEnabled : false,
       position: logo.position === "left" ? "left" : "right",
       size: numberInRange(logo.size, defaults.logo.size, 16, 320),
-      dataUrl: pngDimensions(logo.dataUrl) ? logo.dataUrl as string : "",
+      dataUrl: pngDimensions(logo.dataUrl) ? (logo.dataUrl as string) : "",
       fileName: content(logo.fileName, ""),
     },
     margin: numberInRange(root.margin, defaults.margin, 0, 200),
     gap: numberInRange(root.gap, defaults.gap, 0, 80),
     fontSize: {
       title: numberInRange(fonts.title, defaults.fontSize.title, 12, 180),
-      subTitle: numberInRange(fonts.subTitle, defaults.fontSize.subTitle, 12, 140),
+      subTitle: numberInRange(
+        fonts.subTitle,
+        defaults.fontSize.subTitle,
+        12,
+        140,
+      ),
       text: numberInRange(fonts.text, defaults.fontSize.text, 12, 100),
       code: numberInRange(fonts.code, defaults.fontSize.code, 10, 100),
       formula: numberInRange(fonts.formula, defaults.fontSize.formula, 12, 140),
     },
     color: {
+      background: color(colors.background, defaults.color.background),
       primary: color(colors.primary, defaults.color.primary),
       secondary: color(colors.secondary, defaults.color.secondary),
       text: color(colors.text, defaults.color.text),
@@ -63,18 +77,39 @@ export function normalizeSettings(raw: unknown): PresentationSettings {
       tableHeader: color(colors.tableHeader, defaults.color.tableHeader),
     },
     pageNumber: {
-      isEnabled: typeof pageNumber.isEnabled === "boolean" ? pageNumber.isEnabled : defaults.pageNumber.isEnabled,
-      fontSize: numberInRange(pageNumber.fontSize, defaults.pageNumber.fontSize, 8, 48),
+      isEnabled:
+        typeof pageNumber.isEnabled === "boolean"
+          ? pageNumber.isEnabled
+          : defaults.pageNumber.isEnabled,
+      fontSize: numberInRange(
+        pageNumber.fontSize,
+        defaults.pageNumber.fontSize,
+        8,
+        48,
+      ),
     },
     pageTitle: {
-      isEnabled: typeof pageTitle.isEnabled === "boolean" ? pageTitle.isEnabled : defaults.pageTitle.isEnabled,
+      isEnabled:
+        typeof pageTitle.isEnabled === "boolean"
+          ? pageTitle.isEnabled
+          : defaults.pageTitle.isEnabled,
       title: {
         content: content(title.content, defaults.pageTitle.title.content),
-        fontSize: numberInRange(title.fontSize, defaults.pageTitle.title.fontSize, 20, 180),
+        fontSize: numberInRange(
+          title.fontSize,
+          defaults.pageTitle.title.fontSize,
+          20,
+          180,
+        ),
       },
       subTitle: {
         content: content(subTitle.content, defaults.pageTitle.subTitle.content),
-        fontSize: numberInRange(subTitle.fontSize, defaults.pageTitle.subTitle.fontSize, 12, 140),
+        fontSize: numberInRange(
+          subTitle.fontSize,
+          defaults.pageTitle.subTitle.fontSize,
+          12,
+          140,
+        ),
       },
     },
   };
@@ -84,7 +119,8 @@ export function parseSettingsJson(json: string): PresentationSettings {
   try {
     return normalizeSettings(JSON.parse(json));
   } catch (error) {
-    if (error instanceof SyntaxError) throw new Error("JSONの形式が正しくありません。");
+    if (error instanceof SyntaxError)
+      throw new Error("JSONの形式が正しくありません。");
     throw error;
   }
 }

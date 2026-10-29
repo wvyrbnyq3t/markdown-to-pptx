@@ -14,7 +14,7 @@
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  background: var(--color-slide-paper);
+  background: var(--slide-background, var(--color-slide-paper));
   color: var(--slide-text);
   padding: var(--slide-margin);
   font-family: var(--font-family-body);

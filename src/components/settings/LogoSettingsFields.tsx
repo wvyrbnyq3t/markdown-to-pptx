@@ -88,7 +88,7 @@ export function LogoSettingsFields({ value, onChange, onError }: Props) {
           />
         </label>
         <label className="c-field">
-          <span>ロゴ画像（PNG・512KB以内）</span>
+          <span>ロゴ画像（PNG・5MB以内）</span>
           <input
             className="c-field__file"
             type="file"

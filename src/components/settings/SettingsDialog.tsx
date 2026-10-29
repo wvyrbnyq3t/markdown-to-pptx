@@ -25,6 +25,7 @@ const FONT_LABELS: Record<FontKey, string> = {
   formula: "数式",
 };
 const COLOR_LABELS: Record<ColorKey, string> = {
+  background: "スライド背景色",
   primary: "メインカラー",
   secondary: "サブカラー",
   text: "本文カラー",
