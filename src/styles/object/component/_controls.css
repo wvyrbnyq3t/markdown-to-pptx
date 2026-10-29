@@ -23,6 +23,11 @@
   transition:
     background-color 0.15s ease,
     border-color 0.15s ease;
+
+  &:focus-visible {
+    outline: 2px solid var(--color-focus);
+    outline-offset: 2px;
+  }
 }
 .c-button--primary {
   background: var(--color-brand);
@@ -114,6 +119,11 @@
   border: var(--border-width) solid var(--color-border);
   border-radius: var(--radius-sm);
   outline-offset: 0;
+
+  &:focus-visible {
+    border-color: var(--color-brand);
+    background-color: #f3f7fe;
+  }
 }
 .c-field--inline {
   flex-direction: row;
@@ -126,6 +136,11 @@
   display: flex;
   align-items: center;
   gap: var(--space-3);
+
+  &:has(input:focus-visible) {
+    border-color: var(--color-brand);
+    background-color: #f3f7fe;
+  }
 }
 .c-field__color input {
   width: var(--control-height);
@@ -144,6 +159,11 @@
   color: var(--color-text);
   border: var(--border-width) solid var(--color-border);
   border-radius: var(--radius-sm);
+
+  &:focus-visible {
+    border-color: var(--color-brand);
+    background-color: #f3f7fe;
+  }
 }
 .c-check {
   display: inline-flex;
@@ -151,11 +171,17 @@
   gap: var(--space-2);
   cursor: pointer;
   font-weight: 600;
+  user-select: none;
 }
 .c-check input {
   width: var(--space-4);
   height: var(--space-4);
   accent-color: var(--color-brand);
+
+  &:focus-visible {
+    outline: 2px solid var(--color-focus);
+    outline-offset: 2px;
+  }
 }
 .c-toast-viewport {
   position: fixed;

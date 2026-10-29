@@ -336,7 +336,7 @@ export function EditorPage() {
             スライド設定
           </button>
           <button
-            className="c-button c-button--primary"
+            className="c-button c-button--primary l-header__desktop-button"
             onClick={startPresentation}
             aria-label="発表モードを開始"
           >

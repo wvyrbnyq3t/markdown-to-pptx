@@ -42,10 +42,6 @@
   --color-warning: #a16308;
   --color-warning-soft: #fff8e5;
   --color-focus: #93c5fd;
-  --color-presentation-background: #101827;
-  --color-presentation-toolbar: rgba(16, 26, 44, 0.94);
-  --color-presentation-button-hover: rgba(255, 255, 255, 0.16);
-  --color-presentation-button-disabled: rgba(255, 255, 255, 0.38);
 
   /* Spacing: 4pxグリッド */
   --space-0: 0;

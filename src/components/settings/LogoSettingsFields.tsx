@@ -57,6 +57,8 @@ export function LogoSettingsFields({ value, onChange, onError }: Props) {
         <label className="c-field">
           <span>位置</span>
           <select
+            id="logo-position"
+            name="logo-position"
             className="c-field__select"
             value={value.position}
             onChange={(event) =>
@@ -88,6 +90,7 @@ export function LogoSettingsFields({ value, onChange, onError }: Props) {
         <label className="c-field">
           <span>ロゴ画像（PNG・512KB以内）</span>
           <input
+            className="c-field__file"
             type="file"
             accept="image/png,.png"
             disabled={loading}
@@ -98,13 +101,6 @@ export function LogoSettingsFields({ value, onChange, onError }: Props) {
           />
         </label>
       </div>
-      <p
-        style={{
-          fontSize: ".875em",
-        }}
-      >
-        端からの距離はスライドの余白と同じです。縦横比を保ち、高さは最大200pxに収めます。
-      </p>
       {loading && <p role="status">ロゴを読み込み中…</p>}
       {value.dataUrl ? (
         <div className="p-settings__logo-preview">
@@ -119,9 +115,7 @@ export function LogoSettingsFields({ value, onChange, onError }: Props) {
             画像を削除
           </button>
         </div>
-      ) : (
-        <p>PNGファイルを選択してください。</p>
-      )}
+      ) : null}
     </section>
   );
 }
