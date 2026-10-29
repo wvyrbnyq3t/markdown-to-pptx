@@ -1,3 +1,4 @@
+import { ColorField } from "./ColorField";
 import { LogoSettingsFields } from "./LogoSettingsFields";
 import { useRef } from "react";
 import { Download, Upload, X } from "lucide-react";
@@ -146,17 +147,12 @@ export function SettingsDialog({
             <h3>カラー</h3>
             <div className="p-settings__fields">
               {(Object.keys(COLOR_LABELS) as ColorKey[]).map((key) => (
-                <label key={key} className="c-field">
-                  <span>{COLOR_LABELS[key]}</span>
-                  <span className="c-field__color">
-                    <input
-                      type="color"
-                      value={settings.color[key]}
-                      onChange={(e) => updateColor(key, e.target.value)}
-                    />
-                    <span>{settings.color[key]}</span>
-                  </span>
-                </label>
+                <ColorField
+                  key={key}
+                  label={COLOR_LABELS[key]}
+                  value={settings.color[key]}
+                  onChange={(value) => updateColor(key, value)}
+                />
               ))}
             </div>
           </section>

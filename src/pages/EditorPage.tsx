@@ -318,7 +318,9 @@ export function EditorPage() {
           <label className="c-field u-gap--none">
             <span>ファイル名</span>
             <input
-              className="p-editor__filename"
+              id="export-file-name"
+              name="export-file-name"
+              className="p-editor__exportFileName"
               value={filename}
               onChange={(event) => setFilename(event.target.value)}
               aria-label="PPTXファイル名"
@@ -327,7 +329,7 @@ export function EditorPage() {
         </div>
         <div className="l-header__actions">
           <button
-            className="c-button c-button--subtle"
+            className="c-button c-button--subtle l-header__desktop-button"
             onClick={() => {
               setSettingsOpen(true);
               setMenuOpen(false);

@@ -132,7 +132,6 @@
   gap: var(--space-2);
 }
 .c-field__color {
-  border: 1px solid var(--color-border);
   min-height: var(--control-height);
   display: flex;
   align-items: center;
@@ -143,7 +142,7 @@
     background-color: #f3f7fe;
   }
 }
-.c-field__color input {
+.c-field__color input[type="color"] {
   width: var(--control-height);
   height: var(--control-height);
   padding: var(--space-0);
@@ -226,4 +225,21 @@
   .c-separated-list__item:not(:last-child) {
     border-bottom: 1px solid var(--color-border);
   }
+}
+
+.c-field__color .c-field__hex {
+  flex: 1;
+  min-width: 0;
+  font-family: var(--font-family-code);
+}
+.c-field__hint {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+}
+.c-field__error {
+  font-size: var(--font-size-sm);
+  color: var(--color-error);
+}
+.c-field__hex[aria-invalid="true"] {
+  border-color: var(--color-error);
 }
