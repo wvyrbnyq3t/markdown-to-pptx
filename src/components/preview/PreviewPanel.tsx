@@ -10,7 +10,7 @@ interface Props {
   activeSlideIndex: number;
 }
 
-function SlideThumbnail({
+export function SlideThumbnail({
   children,
   label,
 }: {

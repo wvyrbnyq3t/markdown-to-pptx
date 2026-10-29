@@ -1,8 +1,4 @@
 /*
- * ポンっ！共通デザイントークン
- * UIのカラー・spacing・radius・shadow・border・font・z-indexはこのファイルだけで管理する。
- * 変更する際は、このファイルの変数値を更新する。
- *
  * スライド内の可変色・可変フォントは src/components/preview/SlideContent.tsx が
  * --slide-* としてスライド単位へ渡す（ユーザー設定のため共通UI色とは分離）。
  */

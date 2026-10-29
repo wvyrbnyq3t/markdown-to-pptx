@@ -1,23 +1,183 @@
-.p-home { width: min(100%, 1200px); margin: 0 auto; padding: var(--space-16) var(--space-8); }
-.p-home__hero { display: flex; flex-direction: column; align-items: flex-start; gap: var(--space-6); }
-.p-home__eyebrow { color: var(--color-brand); font-weight: 800; letter-spacing: 0.08em; }
-.p-home__hero h1 { font-size: clamp(44px, 5vw, 72px); letter-spacing: -0.06em; line-height: 1.25; }
-.p-home__hero > p:not(.p-home__eyebrow) { color: var(--color-text-secondary); font-size: var(--font-size-lg); }
-.p-home__actions { display: flex; flex-wrap: wrap; gap: var(--space-3); }
-.p-home__features { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--space-4); margin-top: var(--space-20); }
-.p-home__features > div { padding: var(--space-5); background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-lg); }
-.p-home__features svg { color: var(--color-brand); }
-.p-home__features h2 { margin-top: var(--space-4); font-size: var(--font-size-lg); }
-.p-home__features p { margin-top: var(--space-2); color: var(--color-text-secondary); }
-.p-guide { width: min(100%, 1100px); margin: 0 auto; padding: var(--space-12) var(--space-6); }
-.p-guide__intro { margin-bottom: var(--space-10); }
-.p-guide__intro > p:first-child { color: var(--color-brand); font-weight: 800; }
-.p-guide__intro h1 { font-size: var(--font-size-3xl); margin: var(--space-3) 0; }
-.p-guide__intro > p:last-child, .p-guide__note { color: var(--color-text-secondary); }
-.p-guide__grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-5); }
-.p-guide__section { overflow: hidden; padding: var(--space-5); background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-md); }
-.p-guide__section h2 { font-size: var(--font-size-lg); margin-bottom: var(--space-3); }
-.p-guide__section pre { margin: 0; padding: var(--space-4); overflow: auto; background: var(--color-surface-soft); border-radius: var(--radius-sm); font-family: var(--font-family-code); line-height: 1.7; }
-.p-guide__note { margin-top: var(--space-8); }
-@media (max-width: 850px) { .p-home__features { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
-@media (max-width: 600px) { .p-home { padding: var(--space-10) var(--space-4); } .p-home__features, .p-guide__grid { grid-template-columns: 1fr; } .p-guide { padding: var(--space-6) var(--space-4); } }
+.p-home {
+  width: min(100%, 1200px);
+  margin: 0 auto;
+  padding: var(--space-16) var(--space-8);
+}
+.p-home__hero {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-6);
+}
+.p-home__eyebrow {
+  color: var(--color-brand);
+  font-weight: 800;
+  letter-spacing: 0.08em;
+}
+.p-home__hero h1 {
+  font-size: clamp(44px, 5vw, 72px);
+  letter-spacing: -0.06em;
+  line-height: 1.25;
+}
+.p-home__hero > p:not(.p-home__eyebrow) {
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-lg);
+}
+.p-home__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+}
+.p-home__features {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--space-4);
+  margin-top: var(--space-20);
+}
+.p-home__features > div {
+  padding: var(--space-5);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+}
+.p-home__features svg {
+  color: var(--color-brand);
+}
+.p-home__features h2 {
+  margin-top: var(--space-4);
+  font-size: var(--font-size-lg);
+}
+.p-home__features p {
+  margin-top: var(--space-2);
+  color: var(--color-text-secondary);
+}
+.p-guide {
+  width: min(100%, 1100px);
+  margin: 0 auto;
+  padding: var(--space-12) var(--space-6);
+}
+.p-guide__intro {
+  margin-bottom: var(--space-10);
+}
+.p-guide__intro > p:first-child {
+  color: var(--color-brand);
+  font-weight: 800;
+}
+.p-guide__intro h1 {
+  font-size: var(--font-size-3xl);
+  margin: var(--space-3) 0;
+}
+.p-guide__intro > p:last-child,
+.p-guide__note {
+  color: var(--color-text-secondary);
+}
+.p-guide__grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-5);
+}
+.p-guide__section:not(:last-child) {
+  margin-bottom: var(--space-10);
+}
+
+.p-guide__section h2 {
+  border-left: 0.2em solid var(--color-brand);
+  padding-inline-start: 0.4em;
+  margin-bottom: var(--space-3);
+}
+.p-guide__section pre {
+  margin: 0;
+  padding: var(--space-4);
+  overflow: auto;
+  background: var(--color-surface-soft);
+  border-radius: var(--radius-sm);
+  font-family: var(--font-family-code);
+  line-height: 1.7;
+}
+.p-guide__section ol {
+  list-style-type: decimal;
+  list-style-position: inside;
+}
+.p-guide__note {
+  margin-top: var(--space-8);
+}
+@media (max-width: 850px) {
+  .p-home__features {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (max-width: 600px) {
+  .p-home {
+    padding: var(--space-10) var(--space-4);
+  }
+  .p-home__features,
+  .p-guide__grid {
+    grid-template-columns: 1fr;
+  }
+  .p-guide {
+    padding: var(--space-6) var(--space-4);
+  }
+}
+
+.p-guide__navigation {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  margin-bottom: var(--space-8);
+}
+.p-guide__navigation a {
+  color: var(--color-brand);
+  text-decoration: underline;
+}
+.p-guide__examples {
+  display: grid;
+  gap: var(--space-6);
+}
+.p-guide__comparison {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-5);
+  margin-top: var(--space-4);
+}
+.p-guide__comparison > div {
+  min-width: 0;
+}
+.p-guide__label {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  min-height: var(--space-12);
+  margin-bottom: var(--space-3);
+  font-size: var(--font-size-base);
+}
+.p-guide__results {
+  display: grid;
+  gap: var(--space-3);
+}
+.p-guide__result {
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+}
+.p-guide__hint {
+  padding: var(--space-4);
+  margin-top: var(--space-4);
+  background: var(--color-surface-soft);
+  border-radius: var(--radius-sm);
+  color: var(--color-text-secondary);
+}
+.p-guide__section > p + p,
+.p-guide__section > pre {
+  margin-top: var(--space-3);
+}
+.p-guide__section > ol,
+.p-guide__section > ul {
+  padding-left: var(--space-6);
+  margin-block: var(--space-4);
+}
+@media (max-width: 750px) {
+  .p-guide__comparison {
+    grid-template-columns: 1fr;
+  }
+}
