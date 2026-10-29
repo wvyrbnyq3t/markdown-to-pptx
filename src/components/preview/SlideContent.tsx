@@ -6,7 +6,7 @@ import type { SlideData, SlideElement } from "../../types/slide";
 import { SLIDE_WIDTH, SLIDE_HEIGHT } from "../../types/slide";
 import { splitSlideColumns } from "../../features/markdown/parseMarkdown";
 import { InlineRuns } from "./InlineRuns";
-import { ICON_SYMBOLS } from "../../lib/iconSymbols";
+import { materialIconPath } from "../../features/icons/materialIcons";
 import { contrastTextColor } from "../../lib/color";
 import { SlideImage } from "./SlideImage";
 
@@ -138,7 +138,13 @@ function elementView(
           style={alignStyle}
           aria-label={`アイコン: ${element.name}`}
         >
-          {ICON_SYMBOLS[element.name] ?? "◆"}
+          <svg
+            className="c-slide__material-icon"
+            viewBox="0 0 24 24"
+            aria-hidden="true"
+          >
+            <path fill="currentColor" d={materialIconPath(element.name)} />
+          </svg>
         </div>
       );
     case "card":

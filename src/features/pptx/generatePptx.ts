@@ -18,7 +18,10 @@ import { getImageAsset } from "../images/imageStore";
 import { imageToPptxData } from "../images/imageFiles";
 import { imageDisplaySize } from "../images/imageLayout";
 import { sanitizeFilename } from "../../lib/files";
-import { ICON_SYMBOLS } from "../../lib/iconSymbols";
+import {
+  materialIconData,
+  MATERIAL_ICONS_LICENSE,
+} from "../icons/materialIcons";
 import { contrastTextColor } from "../../lib/color";
 import { mathToSvgData } from "./mathToSvg";
 
@@ -428,19 +431,20 @@ function drawElement(
       );
       break;
     }
-    case "icon":
-      drawText(
-        slide,
-        ICON_SYMBOLS[element.name] ?? "◆",
-        x,
-        y,
-        w,
-        height,
-        body * 1.4,
-        accent,
-        { align },
-      );
+    case "icon": {
+      const size = Math.min(body * 1.4, w);
+      const offset =
+        align === "right" ? w - size : align === "center" ? (w - size) / 2 : 0;
+      slide.addImage({
+        data: materialIconData(element.name, accent),
+        x: pxToIn(x + offset),
+        y: pxToIn(y),
+        w: pxToIn(size),
+        h: pxToIn(size),
+        altText: `Material Icon: ${element.name}`,
+      });
       break;
+    }
     case "card": {
       drawRect(slide, x, y, w, height, "F8FAFC", "CBD5E1");
       drawText(
@@ -529,6 +533,8 @@ export async function generatePptx(
   slides.forEach((data, index) => {
     const slide = pptx.addSlide();
     slide.background = { color: pptColor(settings.color.background) };
+    if (data.elements.some((element) => element.type === "icon"))
+      slide.addNotes(MATERIAL_ICONS_LICENSE);
     const margin = settings.margin;
     const titleY = margin;
     const logo = logoLayout(settings);

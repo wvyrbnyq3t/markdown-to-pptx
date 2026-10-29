@@ -1,0 +1,5 @@
+Material Icons
+Copyright 2018 Google, Inc. All Rights Reserved.
+Source: https://github.com/google/material-design-icons/tree/master/font
+License: Apache License 2.0 (see material-icons-LICENSE.txt).
+Modifications: glyph outlines converted from MaterialIcons-Regular.ttf to 24x24 SVG path data for this application; font hinting removed.

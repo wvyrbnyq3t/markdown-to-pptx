@@ -194,7 +194,7 @@ export function MarkdownEditorPanel({
             event.currentTarget.selectionEnd,
           )
         }
-        placeholder="# スライドタイトル"
+        placeholder="「#」を入力して新しいスライドを追加"
       />
       <div className="p-editor__editor-footer">
         <span>{markdown.split("\n").length} 行</span>

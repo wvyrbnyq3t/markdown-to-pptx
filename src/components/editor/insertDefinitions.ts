@@ -147,7 +147,7 @@ export const INSERT_DEFINITIONS: InsertDefinition[] = [
     id: "icon",
     category: "elements",
     label: "アイコン",
-    description: "シンプルなアイコン記号",
+    description: "Google Material Icons（Filled）の名前を指定",
     template: "\n<!-- icon: star -->\n",
   },
   {
