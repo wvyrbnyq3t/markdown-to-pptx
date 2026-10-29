@@ -99,7 +99,12 @@ function estimateHeight(
         throw new Error(
           `画像「${element.alt || element.assetId}」が見つかりません。画像を再挿入してください。`,
         );
-      return imageDisplaySize(image, columnWidth).height;
+      return imageDisplaySize(
+        image,
+        columnWidth,
+        element.size,
+        SLIDE_HEIGHT - settings.margin * 2,
+      ).height;
     }
     case "math":
       return settings.fontSize.formula * 1.65;
@@ -326,7 +331,12 @@ function drawElement(
     }
     case "image": {
       const image = images.get(element.assetId)!;
-      const size = imageDisplaySize(image, w);
+      const size = imageDisplaySize(
+        image,
+        w,
+        element.size,
+        SLIDE_HEIGHT - settings.margin * 2,
+      );
       const offsetX =
         align === "right"
           ? w - size.width

@@ -90,7 +90,6 @@
   padding: var(--space-4);
   overflow: auto;
   background: var(--color-surface-soft);
-  border-radius: var(--radius-sm);
   font-family: var(--font-family-code);
   line-height: 1.7;
 }
@@ -164,7 +163,6 @@
   padding: var(--space-4);
   margin-top: var(--space-4);
   background: var(--color-surface-soft);
-  border-radius: var(--radius-sm);
   color: var(--color-text-secondary);
 }
 .p-guide__section > p + p,

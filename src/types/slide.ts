@@ -1,4 +1,4 @@
-/** PowerPointとプレビューで共有する、中間データの型定義。 */
+import type { ImageSize } from "../features/images/imageSize";
 export type TextAlignment = "left" | "center" | "right";
 
 export interface TextRun {
@@ -31,12 +31,23 @@ export interface TableData {
 
 export type SlideElement =
   | { type: "subtitle"; text: string; align?: TextAlignment }
-  | { type: "heading"; text: string; level: 3 | 4 | 5 | 6; align?: TextAlignment }
+  | {
+      type: "heading";
+      text: string;
+      level: 3 | 4 | 5 | 6;
+      align?: TextAlignment;
+    }
   | { type: "paragraph"; runs: TextRun[]; align?: TextAlignment }
   | { type: "list"; lines: ListLine[] }
   | { type: "quote"; runs: TextRun[]; align?: TextAlignment }
   | { type: "code"; code: string; language?: string }
-  | { type: "image"; assetId: string; alt: string; align?: TextAlignment }
+  | {
+      type: "image";
+      assetId: string;
+      alt: string;
+      size?: ImageSize;
+      align?: TextAlignment;
+    }
   | { type: "math"; latex: string; inline?: boolean; align?: TextAlignment }
   | { type: "table"; table: TableData }
   | { type: "icon"; name: string; align?: TextAlignment }

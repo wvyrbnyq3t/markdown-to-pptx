@@ -10,7 +10,12 @@ import { ICON_SYMBOLS } from "../../lib/iconSymbols";
 import { contrastTextColor } from "../../lib/color";
 import { SlideImage } from "./SlideImage";
 
-function elementView(element: SlideElement, key: number, columnWidth: number) {
+function elementView(
+  element: SlideElement,
+  key: number,
+  columnWidth: number,
+  contentHeight: number,
+) {
   const alignStyle =
     "align" in element ? { textAlign: element.align ?? "left" } : undefined;
   switch (element.type) {
@@ -72,6 +77,8 @@ function elementView(element: SlideElement, key: number, columnWidth: number) {
         <SlideImage
           key={key}
           assetId={element.assetId}
+          size={element.size}
+          contentHeight={contentHeight}
           alt={element.alt}
           align={element.align}
           columnWidth={columnWidth}
@@ -244,7 +251,12 @@ export function SlideContent({
         {columns.map((elements, columnIndex) => (
           <div key={columnIndex} className="c-slide__column">
             {elements.map((element, index) =>
-              elementView(element, index, columnWidth),
+              elementView(
+                element,
+                index,
+                columnWidth,
+                SLIDE_HEIGHT - settings.margin * 2,
+              ),
             )}
           </div>
         ))}
