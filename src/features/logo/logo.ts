@@ -1,3 +1,4 @@
+import { svgLogoToPng } from "./svgLogo";
 import type { PresentationSettings } from "../../types/settings";
 import { SLIDE_WIDTH, SLIDE_HEIGHT } from "../../types/slide";
 import { prepareImageAsset, imageToPptxData } from "../images/imageFiles";
@@ -55,10 +56,18 @@ export async function readLogoFile(
   file: File,
 ): Promise<Pick<LogoSettings, "dataUrl" | "fileName">> {
   if (file.size > MAX_LOGO_BYTES)
-    throw new Error("ロゴは512KB以内のPNGを選択してください。");
+    throw new Error("ロゴは5MB以内のPNGまたはSVGを選択してください。");
+  if (/\.svg$/i.test(file.name) || file.type === "image/svg+xml") {
+    const png = await svgLogoToPng(file);
+    if (png.size > MAX_LOGO_BYTES)
+      throw new Error(
+        "変換後の画像が5MBを超えています。SVGを簡略化してください。",
+      );
+    return { dataUrl: await imageToPptxData(png), fileName: file.name };
+  }
   const image = await prepareImageAsset(file);
   if (image.mimeType !== "image/png")
-    throw new Error("ロゴにはPNGファイルを選択してください。");
+    throw new Error("ロゴにはPNGまたはSVGファイルを選択してください。");
   return { dataUrl: await imageToPptxData(image.blob), fileName: file.name };
 }
 
