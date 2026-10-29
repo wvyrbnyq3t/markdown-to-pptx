@@ -1,24 +1,9 @@
 import { Link } from "react-router-dom";
-import {
-  Download,
-  Eye,
-  FileCode2,
-  LayoutTemplate,
-} from "lucide-react";
+import { Download, Eye, FileCode2, LayoutTemplate } from "lucide-react";
 
 export function HomePage() {
   return (
     <div className="l-app">
-      <header className="l-header">
-        <nav className="l-header__actions">
-          <Link to="/guide" className="c-button c-button--subtle">
-            使い方
-          </Link>
-          <Link to="/editor" className="c-button c-button--primary">
-            編集を始める
-          </Link>
-        </nav>
-      </header>
       <main className="p-home">
         <div className="p-home__hero">
           <p className="p-home__eyebrow">Markdown × PowerPoint</p>
@@ -37,13 +22,13 @@ export function HomePage() {
               className="c-button c-button--primary c-button--large"
               to="/editor"
             >
-              エディタを開く
+              スライドをつくる
             </Link>
             <Link
               className="c-button c-button--subtle c-button--large"
               to="/guide"
             >
-              記法を見る
+              使い方をみる
             </Link>
           </div>
         </div>
