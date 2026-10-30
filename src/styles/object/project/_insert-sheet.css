@@ -1,18 +1,15 @@
 .p-insert-sheet {
-  align-self: flex-end;
+  position: fixed;
+  inset: auto 0 0;
   width: min(100%, 900px);
   max-height: 80dvh;
   display: flex;
   flex-direction: column;
   overflow: hidden;
   margin: 0 auto;
-  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  border-radius: var(--radius-sm) var(--radius-sm) 0 0;
   background: var(--color-surface);
   box-shadow: var(--shadow-lg);
-}
-.c-overlay:has(.p-insert-sheet) {
-  align-items: flex-end;
-  padding-bottom: 0;
 }
 .p-insert-sheet__header {
   padding: var(--space-5) var(--space-6);
@@ -21,7 +18,7 @@
   gap: var(--space-4);
   border-bottom: 1px solid var(--color-border);
 }
-.p-insert-sheet__header strong {
+.p-insert-sheet__header h2 {
   font-size: var(--font-size-xl);
 }
 .p-insert-sheet__header p {
@@ -29,19 +26,43 @@
   font-size: var(--font-size-sm);
   margin-top: var(--space-1);
 }
-.p-insert-sheet__tabs {
+.p-insert-sheet__categories {
   display: flex;
   gap: var(--space-2);
   overflow-x: auto;
   padding: var(--space-2) var(--space-6);
   border-bottom: 1px solid var(--color-border);
 }
+.p-insert-sheet__header,
+.p-insert-sheet__categories {
+  flex-shrink: 0;
+}
+.p-insert-sheet__categories .c-tab:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: -2px;
+}
+.p-insert-sheet__body {
+  min-height: 0;
+  height: 60dvh;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: var(--space-5) var(--space-6) var(--space-8);
+}
+.p-insert-sheet__category {
+  padding-bottom: var(--space-6);
+}
+.p-insert-sheet__category:last-child {
+  min-height: 100%;
+  padding-bottom: 0;
+}
+.p-insert-sheet__category h3 {
+  margin-bottom: var(--space-3);
+  font-size: var(--font-size-lg);
+}
 .p-insert-sheet__grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: var(--space-3);
-  overflow: auto;
-  padding: var(--space-5) var(--space-6) var(--space-8);
 }
 .p-insert-sheet__option {
   display: flex;
@@ -66,12 +87,16 @@
   font-size: var(--font-size-sm);
 }
 @media (max-width: 700px) {
+  .p-insert-sheet__categories .c-tab {
+    flex: 1 0 auto;
+    padding-inline: var(--space-1);
+  }
   .p-insert-sheet__grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    padding: var(--space-3);
   }
+  .p-insert-sheet__body,
   .p-insert-sheet__header,
-  .p-insert-sheet__tabs {
-    padding: var(--space-3);
+  .p-insert-sheet__categories {
+    padding: var(--space-4);
   }
 }

@@ -1,9 +1,15 @@
 .p-settings {
+  position: fixed;
+  inset: 0;
+  margin: 0;
   display: flex;
   flex-direction: column;
-  width: 90dvw;
-  max-height: 90dvh;
-  border-radius: var(--radius-lg);
+  width: 100%;
+  max-width: 100%;
+  height: 100vh;
+  height: 100dvh;
+  max-height: 100dvh;
+  border-radius: 0;
   overflow: hidden;
   background: var(--color-surface);
   box-shadow: var(--shadow-lg);
@@ -25,6 +31,8 @@
   color: var(--color-text-muted);
 }
 .p-settings__body {
+  min-height: 0;
+  overscroll-behavior: contain;
   flex: 1;
   overflow-y: auto;
   padding: var(--space-2) var(--space-6);
@@ -80,4 +88,29 @@
   max-width: var(--logo-preview-width);
   max-height: var(--logo-preview-height);
   object-fit: contain;
+}
+
+.p-settings__header,
+.p-settings__footer {
+  flex-shrink: 0;
+}
+
+/* 開くたびに画面下から移動。閉じる処理はネイティブdialogに任せる。 */
+.p-settings[open] {
+  animation: settings-sheet-enter var(--sheet-enter-duration) var(--sheet-enter-easing);
+}
+@keyframes settings-sheet-enter {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+.p-settings__header {
+  padding-top: max(var(--space-5), env(safe-area-inset-top));
+}
+.p-settings__footer {
+  padding-bottom: max(var(--space-4), env(safe-area-inset-bottom));
+}
+@media (prefers-reduced-motion: reduce) {
+  .p-settings[open] {
+    animation: none;
+  }
 }

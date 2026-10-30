@@ -318,13 +318,13 @@
   display: none;
 }
 
-:where(dialog, [popver]) {
+:where(dialog, [popover]) {
   border: unset;
   overscroll-behavior-block: contain;
   padding: unset;
 }
 
-:where(dialog:not([open], [popver]), [popver]:not(:popver-open)) {
+:where(dialog:not([open], [popover]), [popover]:not(:popover-open)) {
   display: none !important;
 }
 
@@ -337,7 +337,7 @@
   background-color: oklab(0% 0deg / 30%);
 }
 
-:where([popver]) {
+:where([popover]) {
   margin: unset;
 }
 

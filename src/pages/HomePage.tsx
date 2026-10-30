@@ -1,5 +1,4 @@
 import { Link } from "react-router-dom";
-import { Download, Eye, FileCode2, LayoutTemplate } from "lucide-react";
 
 export function HomePage() {
   return (
@@ -30,28 +29,6 @@ export function HomePage() {
             >
               使い方をみる
             </Link>
-          </div>
-        </div>
-        <div className="p-home__features">
-          <div>
-            <FileCode2 />
-            <h2>Markdownで編集</h2>
-            <p>見出しやリストをテキストで素早く記述。</p>
-          </div>
-          <div>
-            <Eye />
-            <h2>リアルタイムプレビュー</h2>
-            <p>入力と同時にスライドへ反映。</p>
-          </div>
-          <div>
-            <LayoutTemplate />
-            <h2>自由なレイアウト</h2>
-            <p>複数カラム・配置・色・余白を変更。</p>
-          </div>
-          <div>
-            <Download />
-            <h2>PPTX形式で保存</h2>
-            <p>PowerPointとしてダウンロードできます。</p>
           </div>
         </div>
       </main>

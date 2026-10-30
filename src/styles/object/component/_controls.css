@@ -92,15 +92,20 @@
   color: var(--color-brand);
   font-weight: 700;
 }
-.c-overlay {
-  position: fixed;
-  inset: 0;
-  z-index: var(--z-overlay);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: var(--space-4);
+.c-dialog {
+  padding: 0;
+  border: 0;
+  color: var(--color-text);
+}
+.c-dialog:not([open]) {
+  display: none;
+}
+.c-dialog::backdrop {
   background: var(--color-overlay);
+}
+:root:has(.c-dialog[open]),
+.l-app:has(.c-dialog[open]) {
+  overflow: hidden;
 }
 .c-field {
   display: flex;

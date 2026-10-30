@@ -89,6 +89,10 @@
   --border-width: 1px;
   --separator-width: 8px;
 
+  /* Sheet motion */
+  --sheet-enter-duration: 280ms;
+  --sheet-enter-easing: cubic-bezier(0.22, 1, 0.36, 1);
+
   /* Stacking */
   --z-header: 20;
   --z-overlay: 100;

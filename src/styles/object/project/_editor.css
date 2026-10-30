@@ -117,18 +117,28 @@
   background: var(--color-slide-paper);
 }
 .p-editor__menu {
-  z-index: var(--z-header);
-  position: absolute;
+  position: fixed;
+  inset: auto;
+  margin: 0;
   right: var(--space-4);
   top: var(--header-height);
-  display: flex;
-  flex-direction: column;
-  min-width: 230px;
+  width: min(320px, calc(100vw - var(--space-4)));
+  max-height: calc(100dvh - var(--header-height) - var(--space-4));
+  overflow-y: auto;
+  overscroll-behavior: contain;
   padding: var(--space-2);
   background: var(--color-surface);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
   box-shadow: var(--shadow-md);
+}
+.p-editor__menu:popover-open {
+  display: flex;
+  flex-direction: column;
+}
+.p-editor__menu :is(a, button):focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: -2px;
 }
 .p-editor__menu a,
 .p-editor__menu button {

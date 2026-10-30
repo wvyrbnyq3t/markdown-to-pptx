@@ -72,6 +72,8 @@ export function EditorPage() {
   const [panelWidth, setPanelWidth] = useState(initialPanelWidth);
   const [activeSlideIndex, setActiveSlideIndex] = useState(0);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const menuRef = useRef<HTMLElement>(null);
+  const menuButtonRef = useRef<HTMLButtonElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const imageInputRef = useRef<HTMLInputElement>(null);
   const projectInputRef = useRef<HTMLInputElement>(null);
@@ -92,6 +94,35 @@ export function EditorPage() {
       /* 保存できなければ省略 */
     }
   }, [panelWidth]);
+
+  function closeMenu() {
+    if (menuRef.current?.matches(":popover-open"))
+      menuRef.current.hidePopover();
+  }
+
+  function positionMenu() {
+    const button = menuButtonRef.current;
+    const menu = menuRef.current;
+    if (!button || !menu) return;
+    const rect = button.getBoundingClientRect();
+    const top = Math.max(8, Math.min(rect.bottom + 8, window.innerHeight - 80));
+    menu.style.top = `${top}px`;
+    menu.style.right = `${Math.max(8, window.innerWidth - rect.right)}px`;
+    menu.style.maxHeight = `${Math.max(0, window.innerHeight - top - 8)}px`;
+  }
+
+  useEffect(() => {
+    if (!menuOpen) return;
+    const observer = new ResizeObserver(positionMenu);
+    if (menuButtonRef.current) observer.observe(menuButtonRef.current);
+    window.addEventListener("resize", positionMenu);
+    window.addEventListener("scroll", positionMenu, true);
+    return () => {
+      observer.disconnect();
+      window.removeEventListener("resize", positionMenu);
+      window.removeEventListener("scroll", positionMenu, true);
+    };
+  }, [menuOpen]);
 
   function restoreSelection(start: number, end: number, focus = false) {
     selectionRef.current = { start, end };
@@ -199,7 +230,7 @@ export function EditorPage() {
   async function exportProject() {
     if (projectBusy || imageBusy) return;
     setProjectBusy(true);
-    setMenuOpen(false);
+    closeMenu();
     try {
       const archive = await createProjectArchive({
         markdown: history.text,
@@ -271,7 +302,7 @@ export function EditorPage() {
   }
 
   function startPresentation() {
-    setMenuOpen(false);
+    closeMenu();
     setPresentationOpen(true);
     // ブラウザの全画面APIはユーザーのクリック中に呼び出す必要がある。
     // 許可されなくてもCSSの全画面オーバーレイで発表は可能。
@@ -332,7 +363,7 @@ export function EditorPage() {
             className="c-button c-button--subtle l-header__desktop-button"
             onClick={() => {
               setSettingsOpen(true);
-              setMenuOpen(false);
+              closeMenu();
             }}
           >
             スライド設定
@@ -347,81 +378,92 @@ export function EditorPage() {
           <button
             className="c-icon-button l-header__menu-button"
             aria-label="メニュー"
+            ref={menuButtonRef}
+            popoverTarget="editor-menu"
             aria-expanded={menuOpen}
-            onClick={() => setMenuOpen((value) => !value)}
+            aria-controls="editor-menu"
           >
             {menuOpen ? <X size={22} /> : <Menu size={22} />}
           </button>
         </div>
       </header>
-      {menuOpen && (
-        <nav className="p-editor__menu" aria-label="メニュー">
-          <ul className="c-separated-list">
-            <li className="c-separated-list__item">
-              <button
-                disabled={imageBusy || projectBusy}
-                onClick={() => {
-                  fileInputRef.current?.click();
-                  setMenuOpen(false);
-                }}
-              >
-                Markdownを読み込む
-              </button>
-              <button
-                onClick={() => {
-                  downloadText(
-                    `${sanitizeFilename(filename)}.md`,
-                    history.text,
-                    "text/markdown;charset=utf-8",
-                  );
-                  setMenuOpen(false);
-                }}
-              >
-                Markdown形式でエクスポート
-              </button>
-              <button
-                disabled={imageBusy || projectBusy}
-                onClick={() => void exportProject()}
-              >
-                {projectBusy ? "処理中…" : "画像込みZIPを保存"}
-              </button>
-              <button
-                disabled={imageBusy || projectBusy}
-                onClick={() => {
-                  projectInputRef.current?.click();
-                  setMenuOpen(false);
-                }}
-              >
-                画像込みZIPを読み込む
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  void exportPowerPoint();
-                }}
-              >
-                PPTX形式でエクスポート
-              </button>
-            </li>
-            <li className="c-separated-list__item">
-              <button onClick={startPresentation}>発表をはじめる</button>
-              <button
-                onClick={() => {
-                  setSettingsOpen(true);
-                  setMenuOpen(false);
-                }}
-              >
-                スライド設定
-              </button>
-            </li>
-            <li className="c-separated-list__item">
-              <Link to="/guide" onClick={() => setMenuOpen(false)}>
-                使い方を見る
-              </Link>
-            </li>
-          </ul>
-        </nav>
-      )}
+      <nav
+        ref={menuRef}
+        id="editor-menu"
+        popover="auto"
+        className="p-editor__menu"
+        aria-label="メニュー"
+        onBeforeToggle={(event) => {
+          if (event.newState === "open") positionMenu();
+        }}
+        onToggle={(event) => setMenuOpen(event.newState === "open")}
+      >
+        <ul className="c-separated-list">
+          <li className="c-separated-list__item">
+            <button
+              disabled={imageBusy || projectBusy}
+              onClick={() => {
+                fileInputRef.current?.click();
+                closeMenu();
+              }}
+            >
+              Markdownを読み込む
+            </button>
+            <button
+              onClick={() => {
+                downloadText(
+                  `${sanitizeFilename(filename)}.md`,
+                  history.text,
+                  "text/markdown;charset=utf-8",
+                );
+                closeMenu();
+              }}
+            >
+              Markdown形式でエクスポート
+            </button>
+            <button
+              disabled={imageBusy || projectBusy}
+              onClick={() => void exportProject()}
+            >
+              {projectBusy ? "処理中…" : "画像込みZIPを保存"}
+            </button>
+            <button
+              disabled={imageBusy || projectBusy}
+              onClick={() => {
+                projectInputRef.current?.click();
+                closeMenu();
+              }}
+            >
+              画像込みZIPを読み込む
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                closeMenu();
+                void exportPowerPoint();
+              }}
+            >
+              PPTX形式でエクスポート
+            </button>
+          </li>
+          <li className="c-separated-list__item">
+            <button onClick={startPresentation}>発表をはじめる</button>
+            <button
+              onClick={() => {
+                setSettingsOpen(true);
+                closeMenu();
+              }}
+            >
+              スライド設定
+            </button>
+          </li>
+          <li className="c-separated-list__item">
+            <Link to="/guide" onClick={closeMenu}>
+              使い方を見る
+            </Link>
+          </li>
+        </ul>
+      </nav>
       <div
         className="p-editor__mobile-switch"
         role="group"
@@ -538,8 +580,9 @@ export function EditorPage() {
         onChange={setSettings}
         onClose={() => setSettingsOpen(false)}
         onNotify={notify}
+        notifications={<ToastViewport toasts={toasts} onDismiss={dismiss} />}
       />
-      <ToastViewport toasts={toasts} onDismiss={dismiss} />
+      {!settingsOpen && <ToastViewport toasts={toasts} onDismiss={dismiss} />}
       {presentationOpen && (
         <PresentationMode
           slides={slides}
