@@ -1,3 +1,4 @@
+import { materialIconPath } from "../../features/icons/materialIcons";
 import katex from "katex";
 import type { TextRun } from "../../types/slide";
 
@@ -13,7 +14,9 @@ interface Props { runs: TextRun[]; }
 
 export function InlineRuns({ runs }: Props) {
   return <>{runs.map((run, index) => {
-    const content = run.math
+    const content = run.icon
+      ? <svg className="c-slide__inline-icon" viewBox="0 0 24 24" role="img" aria-label={`アイコン: ${run.icon}`}><path fill="currentColor" d={materialIconPath(run.icon)} /></svg>
+      : run.math
       ? <span className="c-slide__inline-math" dangerouslySetInnerHTML={{ __html: katex.renderToString(run.text, { throwOnError: false, trust: false }) }} />
       : <span className={[
           run.bold ? "u-text-bold" : "",

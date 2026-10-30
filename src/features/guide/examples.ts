@@ -70,11 +70,18 @@ export const GUIDE_EXAMPLES = [
     note: "LaTeX形式で記述します。独立した数式は$$をそれぞれ別の行に書いてください。",
   },
   {
+    id: "inline-icons",
+    title: "アイコンを文章内・独立して配置する",
+    code: "# :icon:home: ご案内\n\n:icon:check_circle: 申し込み完了です。\n\n- :icon:event: 開催日を確認\n- :icon:place: 会場を確認\n\n<!-- align: center -->\n\n<!-- icon: star -->",
+    effect: ":icon:名前: は文字と同じ行に表示し、文字サイズ・色に合わせます。<!-- icon:名前 --> は独立したブロックです。",
+    note: "Material Icons（Filled）の名前を使います。見出し・本文・リスト・引用・表・カードに対応。未知の名前はhelp_outlineになります。記法を文字として表示する場合はバッククォートで囲みます。コード・数式内では変換しません。表紙の設定欄は対象外です。",
+  },
+  {
     id: "card",
     title: "カード・アイコンで強調する",
-    code: "# ポイント\n\n<!-- icon: star -->\n\n<!-- card:start -->\n**事前申し込みが必要です。**\n締め切りは金曜日です。\n<!-- card:end -->",
+    code: "# ポイント\n\n<!-- icon: star -->\n\n<!-- card:start -->\n:icon:info: お知らせ\n\n**事前申し込みが必要です。**\n締め切りは金曜日です。\n<!-- card:end -->",
     effect:
-      "icon はアイコン記号、card:start と card:end で囲んだ文章は背景付きのカードになります。",
-    note: "カードには本文と文字装飾を使います。アイコンはアプリに登録された記号で、未登録の名前は◆になります。",
+      "card:start と card:end で囲んだ文章は背景付きのカードになります。カード内にもインラインアイコンを置けます。",
+    note: "カードには本文と文字装飾を使います。<!-- icon: star --> は独立したブロックアイコンです。",
   },
 ];

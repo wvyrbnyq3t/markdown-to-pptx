@@ -1,3 +1,4 @@
+import { layoutInlineRuns } from "./inlineLayout";
 import { logoLayout } from "../logo/logo";
 import pptxgen from "pptxgenjs";
 import type { PresentationSettings } from "../../types/settings";
@@ -38,7 +39,11 @@ const lineHeight = (fontPx: number) => fontPx * 1.28;
 function textOf(runs: TextRun[]): string {
   return runs.map((run) => run.text).join("");
 }
-function estimatedLines(text: string, width: number, size: number): number {
+function estimatedLines(text: string | TextRun[], width: number, size: number): number {
+  if (Array.isArray(text)) {
+    if (text.some((run) => run.icon)) return layoutInlineRuns(text, width, size).length;
+    text = textOf(text);
+  }
   const chars = Math.max(1, Math.floor(width / (size * 0.59)));
   return text
     .split("\n")
@@ -60,22 +65,22 @@ function estimateHeight(
     case "subtitle":
       return (
         lineHeight(settings.fontSize.subTitle) *
-        estimatedLines(element.text, columnWidth, settings.fontSize.subTitle)
+        estimatedLines(element.runs ?? element.text, columnWidth, settings.fontSize.subTitle)
       );
     case "heading":
       return (
         lineHeight(body * 0.85) *
-        estimatedLines(element.text, columnWidth, body * 0.85)
+        estimatedLines(element.runs ?? element.text, columnWidth, body * 0.85)
       );
     case "paragraph":
       return (
         lineHeight(body) *
-        estimatedLines(textOf(element.runs), columnWidth, body)
+        estimatedLines(element.runs, columnWidth, body)
       );
     case "quote":
       return (
         lineHeight(body * 0.8) *
-          estimatedLines(textOf(element.runs), columnWidth - 24, body * 0.8) +
+          estimatedLines(element.runs, columnWidth - 24, body * 0.8) +
         8
       );
     case "list":
@@ -84,7 +89,7 @@ function estimateHeight(
           height +
           lineHeight(body * 0.83) *
             estimatedLines(
-              textOf(line.runs),
+              line.runs,
               columnWidth - 50 - line.depth * 30,
               body * 0.83,
             ),
@@ -117,7 +122,7 @@ function estimateHeight(
       return body * 1.6;
     case "card":
       return (
-        estimatedLines(textOf(element.runs), columnWidth - 38, body * 0.85) *
+        estimatedLines(element.runs, columnWidth - 38, body * 0.85) *
           lineHeight(body * 0.85) +
         36
       );
@@ -147,6 +152,36 @@ function drawText(
     fontFace?: string;
   } = {},
 ): void {
+  if (Array.isArray(text) && text.some((run) => run.icon)) {
+    const styled = text.map((run) => ({ ...run, bold: run.bold ?? options.bold, italic: run.italic ?? options.italic }));
+    const lines = layoutInlineRuns(styled, width, sizePx);
+    const naturalHeight = lines.length * lineHeight(sizePx);
+    const maxWidth = Math.max(width, ...lines.map((line) => line.width));
+    const scale = Math.min(1, height / naturalHeight, width / maxWidth);
+    const size = sizePx * scale;
+    const top = y + (height - naturalHeight * scale) / 2;
+    lines.forEach((line, index) => {
+      const offset = options.align === "right" ? width - line.width * scale
+        : options.align === "center" ? (width - line.width * scale) / 2 : 0;
+      for (const fragment of line.fragments) {
+        const left = x + offset + fragment.x * scale;
+        const lineTop = top + index * lineHeight(size);
+        if (fragment.run.icon) {
+          slide.addImage({
+            data: materialIconData(fragment.run.icon, color),
+            x: pxToIn(left), y: pxToIn(lineTop + (lineHeight(size) - size) / 2),
+            w: pxToIn(size), h: pxToIn(size),
+            altText: `Material Icon: ${fragment.run.icon}`,
+            hyperlink: fragment.run.link && /^https?:\/\//i.test(fragment.run.link) ? { url: fragment.run.link } : undefined,
+          });
+        } else if (fragment.run.text.trim()) {
+          drawText(slide, [fragment.run], left, lineTop, fragment.width * scale, lineHeight(size), size, color,
+            { ...options, align: "left", fontFace: fragment.run.code ? CODE_FONT_FACE : options.fontFace });
+        }
+      }
+    });
+    return;
+  }
   const runs =
     typeof text === "string"
       ? text
@@ -238,7 +273,7 @@ function drawElement(
     case "subtitle":
       drawText(
         slide,
-        element.text,
+        element.runs ?? element.text,
         x,
         y,
         w,
@@ -251,7 +286,7 @@ function drawElement(
     case "heading":
       drawText(
         slide,
-        element.text,
+        element.runs ?? element.text,
         x,
         y,
         w,
@@ -270,7 +305,7 @@ function drawElement(
         const lineWidth = w - 30 - line.depth * 24;
         const lineHeightPx =
           lineHeight(body * 0.83) *
-          estimatedLines(textOf(line.runs), lineWidth, body * 0.83);
+          estimatedLines(line.runs, lineWidth, body * 0.83);
         const xLine = x + line.depth * 24;
         drawText(
           slide,
@@ -496,6 +531,18 @@ function addCover(pptx: pptxgen, settings: PresentationSettings): void {
   }
 }
 
+/** 表・リスト・見出し内だけのアイコンにもライセンスを添付する。 */
+export function slideHasIcons(data: SlideData): boolean {
+  const has = (runs: TextRun[] | undefined) => runs?.some((run) => Boolean(run.icon)) ?? false;
+  return has(data.titleRuns) || data.elements.some((element) => {
+    if (element.type === "icon") return true;
+    if ("runs" in element) return has(element.runs);
+    if (element.type === "list") return element.lines.some((line) => has(line.runs));
+    if (element.type === "table") return [element.table.headers, ...element.table.rows].some((row) => row.some((cell) => has(cell.runs)));
+    return false;
+  });
+}
+
 /** 表紙→本文の順に、全スライドを編集可能なPPTXとして生成する。 */
 export async function generatePptx(
   slides: SlideData[],
@@ -533,7 +580,7 @@ export async function generatePptx(
   slides.forEach((data, index) => {
     const slide = pptx.addSlide();
     slide.background = { color: pptColor(settings.color.background) };
-    if (data.elements.some((element) => element.type === "icon"))
+    if (slideHasIcons(data))
       slide.addNotes(MATERIAL_ICONS_LICENSE);
     const margin = settings.margin;
     const titleY = margin;
@@ -541,11 +588,11 @@ export async function generatePptx(
     const titleWidth = logo?.titleWidth ?? SLIDE_WIDTH - margin * 2;
     const textHeight =
       lineHeight(settings.fontSize.title) *
-      estimatedLines(data.title, titleWidth, settings.fontSize.title);
+      estimatedLines(data.titleRuns ?? data.title, titleWidth, settings.fontSize.title);
     const titleH = Math.max(textHeight, logo?.height ?? 0);
     drawText(
       slide,
-      data.title,
+      data.titleRuns ?? data.title,
       logo?.titleX ?? margin,
       titleY,
       titleWidth,

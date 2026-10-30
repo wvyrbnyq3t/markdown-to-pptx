@@ -22,7 +22,7 @@ function elementView(
     case "subtitle":
       return (
         <h3 key={key} className="c-slide__subtitle" style={alignStyle}>
-          {element.text}
+          {element.runs ? <InlineRuns runs={element.runs} /> : element.text}
         </h3>
       );
     case "heading":
@@ -32,7 +32,7 @@ function elementView(
           className={`c-slide__heading c-slide__heading--${element.level}`}
           style={alignStyle}
         >
-          {element.text}
+          {element.runs ? <InlineRuns runs={element.runs} /> : element.text}
         </h4>
       );
     case "paragraph":
@@ -246,7 +246,7 @@ export function SlideContent({
               : undefined
           }
         >
-          {slide.title}
+          {slide.titleRuns ? <InlineRuns runs={slide.titleRuns} /> : slide.title}
         </h2>
       </div>
       <div

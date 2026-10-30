@@ -43,6 +43,7 @@ function addRun(runs: TextRun[], run: TextRun): void {
   const previous = runs[runs.length - 1];
   if (
     previous &&
+    !previous.icon && !run.icon &&
     previous.bold === run.bold &&
     previous.italic === run.italic &&
     previous.strike === run.strike &&
@@ -65,11 +66,18 @@ function parseInline(
   const result: TextRun[] = [];
   for (const node of nodes) {
     if (node.type === "text" || node.type === "inlineCode") {
-      addRun(result, {
-        ...style,
-        text: node.value ?? "",
-        code: style.code || node.type === "inlineCode",
-      });
+      const value = node.value ?? "";
+      if (node.type === "inlineCode" || style.code) {
+        addRun(result, { ...style, text: value, code: true });
+      } else {
+        let start = 0;
+        for (const match of value.matchAll(/:icon:([a-z0-9_-]+):/gi)) {
+          addRun(result, { ...style, text: value.slice(start, match.index) });
+          addRun(result, { ...style, text: "\uFFFC", icon: match[1].toLowerCase() });
+          start = match.index + match[0].length;
+        }
+        addRun(result, { ...style, text: value.slice(start) });
+      }
     } else if (node.type === "inlineMath") {
       addRun(result, { ...style, text: node.value ?? "", math: true });
     } else if (node.type === "break") {
@@ -151,16 +159,22 @@ function parseParagraph(node: MarkdownNode): SlideElement[] {
   return elements;
 }
 
+function headingRuns(node: MarkdownNode): TextRun[] | undefined {
+  const runs = parseInline(node.children ?? []);
+  return runs.some((run) => run.icon) ? runs : undefined;
+}
+
 function parseNode(node: MarkdownNode): SlideElement | null {
   switch (node.type) {
     case "heading":
       return node.depth === 2
-        ? { type: "subtitle", text: plainText(node) }
+        ? { type: "subtitle", text: plainText(node), runs: headingRuns(node) }
         : node.depth && node.depth >= 3 && node.depth <= 6
           ? {
               type: "heading",
               level: node.depth as 3 | 4 | 5 | 6,
               text: plainText(node),
+              runs: headingRuns(node),
             }
           : null;
     case "blockquote": {
@@ -269,6 +283,7 @@ export function parseMarkdown(markdown: string): SlideData[] {
         pushSlide();
       pendingImageSize = null;
       current.title = plainText(node).trim() || `スライド ${slides.length + 1}`;
+      current.titleRuns = headingRuns(node);
       sawContent = true;
       pendingAlignment = null;
       continue;

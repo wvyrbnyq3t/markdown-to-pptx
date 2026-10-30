@@ -3,6 +3,7 @@ export type TextAlignment = "left" | "center" | "right";
 
 export interface TextRun {
   text: string;
+  icon?: string;
   bold?: boolean;
   italic?: boolean;
   strike?: boolean;
@@ -30,10 +31,11 @@ export interface TableData {
 }
 
 export type SlideElement =
-  | { type: "subtitle"; text: string; align?: TextAlignment }
+  | { type: "subtitle"; text: string; runs?: TextRun[]; align?: TextAlignment }
   | {
       type: "heading";
       text: string;
+      runs?: TextRun[];
       level: 3 | 4 | 5 | 6;
       align?: TextAlignment;
     }
@@ -58,6 +60,7 @@ export type SlideElement =
 export interface SlideData {
   id: string;
   title: string;
+  titleRuns?: TextRun[];
   gridColumns: number;
   elements: SlideElement[];
 }

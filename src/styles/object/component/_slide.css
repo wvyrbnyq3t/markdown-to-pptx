@@ -233,3 +233,11 @@
   display: inline-block;
   vertical-align: middle;
 }
+
+/* 文章と同じ大きさ・色で、行内の1文字として配置する。 */
+.c-slide__inline-icon {
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  vertical-align: -0.125em;
+}
