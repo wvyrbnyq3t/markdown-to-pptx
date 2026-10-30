@@ -38,7 +38,7 @@ export function layoutInlineRuns(
     line.width += tokenWidth;
   }
   for (const run of runs) {
-    if (run.icon) { append(run, run.text, size); continue; }
+    if (run.icon) { append(run, run.text, size * 1.25); continue; }
     // 英単語は可能な限りまとめ、日本語は文字単位で折り返す。
     for (const token of run.text.match(/\n|[A-Za-z0-9_]+|[^\S\n]+|./gu) ?? []) {
       if (token === "\n") { lines.push({ fragments: [], width: 0 }); continue; }

@@ -73,7 +73,7 @@ export const GUIDE_EXAMPLES = [
     id: "inline-icons",
     title: "アイコンを文章内・独立して配置する",
     code: "# :icon:home: ご案内\n\n:icon:check_circle: 申し込み完了です。\n\n- :icon:event: 開催日を確認\n- :icon:place: 会場を確認\n\n<!-- align: center -->\n\n<!-- icon: star -->",
-    effect: ":icon:名前: は文字と同じ行に表示し、文字サイズ・色に合わせます。<!-- icon:名前 --> は独立したブロックです。",
+    effect: ":icon:名前: は文字と同じ行に表示し、文字サイズの1.25倍で、文字と同じ色にします。<!-- icon:名前 --> は独立したブロックです。",
     note: "Material Icons（Filled）の名前を使います。見出し・本文・リスト・引用・表・カードに対応。未知の名前はhelp_outlineになります。記法を文字として表示する場合はバッククォートで囲みます。コード・数式内では変換しません。表紙の設定欄は対象外です。",
   },
   {

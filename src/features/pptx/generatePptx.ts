@@ -167,10 +167,12 @@ function drawText(
         const left = x + offset + fragment.x * scale;
         const lineTop = top + index * lineHeight(size);
         if (fragment.run.icon) {
+          // 折り返し計算と同じ幅を使い、文字サイズの1.25倍で描画する。
+          const iconSize = fragment.width * scale;
           slide.addImage({
             data: materialIconData(fragment.run.icon, color),
-            x: pxToIn(left), y: pxToIn(lineTop + (lineHeight(size) - size) / 2),
-            w: pxToIn(size), h: pxToIn(size),
+            x: pxToIn(left), y: pxToIn(lineTop + (lineHeight(size) - iconSize) / 2),
+            w: pxToIn(iconSize), h: pxToIn(iconSize),
             altText: `Material Icon: ${fragment.run.icon}`,
             hyperlink: fragment.run.link && /^https?:\/\//i.test(fragment.run.link) ? { url: fragment.run.link } : undefined,
           });
