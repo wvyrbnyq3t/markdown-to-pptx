@@ -7,7 +7,7 @@
   flex-direction: column;
   overflow: hidden;
   margin: 0 auto;
-  border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
   background: var(--color-surface);
   box-shadow: var(--shadow-lg);
 }
@@ -97,6 +97,20 @@
   .p-insert-sheet__body,
   .p-insert-sheet__header,
   .p-insert-sheet__categories {
-    padding: var(--space-4);
+    padding: var(--space-3);
+  }
+}
+
+/* 設定シートと同じ速度・動きで、画面下から開く。 */
+.p-insert-sheet[open] {
+  animation: insert-sheet-enter var(--sheet-enter-duration) var(--sheet-enter-easing);
+}
+@keyframes insert-sheet-enter {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .p-insert-sheet[open] {
+    animation: none;
   }
 }
